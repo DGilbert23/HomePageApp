@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["HomePageApp.Web.styles.css"]" />
+    <ImportMap />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>
+
+<script>
+    window.initHorizontalMouseWheel = (elementId) => {
+    const scrollContainer = document.getElementById(elementId);
+
+    if (scrollContainer) {
+    scrollContainer.addEventListener("wheel", (evt) => {
+    // Prevent the entire web page from scrolling vertically
+    evt.preventDefault();
+
+    // Redirect vertical wheel spin (deltaY) into horizontal movement
+    scrollContainer.scrollLeft -= evt.deltaY;
+    });
+    }
+    };
+</script>

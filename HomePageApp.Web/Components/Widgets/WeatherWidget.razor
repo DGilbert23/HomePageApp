@@ -1,0 +1,102 @@
+﻿@using HomePageApp.Core.Interfaces
+@using HomePageApp.Core.Models
+@inject IWeatherApiService WeatherService
+
+<div class="weather-card">
+    @if (weather == null)
+    {
+        <p>Loading local forecast...</p>
+    }
+    else
+    {
+        <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
+            <div>
+                <div class="d-flex align-items-center gap-1 mb-1">
+                    <svg xmlns="http://w3.org" width="16" height="16" fill="currentColor" class="text-primary align-middle" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
+                    </svg>
+                    <span class="text-uppercase tracking-wider fw-semibold text-muted small">Current Location</span>
+                </div>
+                <h1 class="fw-bold tracking-tight text-dark mb-0 fs-3 fs-sm-2">
+                    @weather.City, <span class="text-secondary fw-normal">@weather.State</span>
+                </h1>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 bg-light-subtle border border-light-subtle rounded-3 p-3 shadow-sm" style="max-width: fit-content;">
+                <div class="lh-1">
+                    <span class="fw-bold d-block text-muted text-uppercase small mb-1">Today</span>
+                    <span class="fw-bold fs-2 text-dark">@weather.CurrentTempF°F</span>
+                </div>
+
+                <div class="vr align-self-stretch text-muted opacity-25"></div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <img src="@weather.ConditionIconUrl" alt="Condition" style="width: 54px; height: 54px;">
+                    <span class="fs-5 fw-semibold text-secondary">@weather.ConditionText</span>
+                </div>
+            </div>
+        </div>        
+
+        <div id="hourly-scroller" class="d-flex overflow-x-auto gap-1 py-3">
+            @for (int i = 0; i <= 24; i++)
+            {
+                var hour = weather.TodayHours[i];
+
+                <div class="flex-shrink-0 flex-nowrap d-flex flex-column align-items-center border border-light-subtle bg-light-subtle rounded-3 p-2 shadow-sm">
+                    <div class="text-muted small">@hour.Time</div>
+                    <img src="@hour.ConditionIconUrl" alt="Condition" style="width: 48px; height: 48px;">
+                    <div>@hour.TempF°F</div>
+                    @if (hour.ChanceOfRain > 0)
+                    {
+                        <div class="text-primary">Rain: @hour.ChanceOfRain%</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <table class="table text-center align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Average Temp</th>
+                    <th></th>
+                    <th>% Chance Rain</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var day in weather.ForecastFuture)
+                {
+                    <tr>
+                        <td>@day.Date.DayOfWeek.ToString()</td>
+                        <td>@day.AverageTempF°F</td>
+                        <td>
+                            <img src="@day.ConditionIconUrl" alt="Condition" style="width: 24px; height: 24px;">
+                        </td>
+                        <td>@day.ChanceOfRain%</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private WeatherData? weather;
+    private bool isScriptInitialized = false;
+
+    @inject IJSRuntime JSRuntime
+
+    protected override async Task OnInitializedAsync()
+    {
+        weather = await WeatherService.GetWidgetWeatherAsync("35803");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (weather != null && !isScriptInitialized)
+        {
+            isScriptInitialized = true;
+            await JSRuntime.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
+        }
+    }
+}

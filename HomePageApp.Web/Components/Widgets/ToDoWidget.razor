@@ -1,0 +1,187 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using HomePageApp.Core.Models
+@using HomePageApp.Infrastructure
+@inject IDbContextFactory<AppDbContext> DbFactory
+
+
+<div class="card-body p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="m-0 text-primary fw-bold">Active Tasks</h5>
+        <span class="badge bg-primary rounded-pill">@todos.Count(t => t.CompletedDate == null) remaining</span>
+    </div>
+
+    <!-- Quick Add Form (Title & Due Date) -->
+    <div class="bg-light p-2 rounded mb-3 border">
+        <div class="row g-2">
+            <div class="col-md-7">
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Task title..." @bind="newTitle" />
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control form-control-sm"
+                       @bind="newDueDate" title="Due Date" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-primary w-100" type="button" @onclick="AddTask">Add</button>
+            </div>
+        </div>
+        <div class="mt-2">
+            <input type="text" class="form-control form-control-sm"
+                   placeholder="Description (optional)..." @bind="newDescription" />
+        </div>
+    </div>
+
+    <!-- Task List View -->
+    @if (todos == null)
+    {
+        <div class="text-center p-3">
+            <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        </div>
+    }
+    else if (!todos.Any())
+    {
+        <p class="text-muted text-center small my-3">No tasks found. Add one above!</p>
+    }
+    else
+    {
+        <div class="list-group list-group-flush">
+            @foreach (var item in todos)
+            {
+                var isDone = item.CompletedDate != null;
+
+                <div class="list-group-item px-1 py-2 bg-transparent border-bottom">
+                    <div class="d-flex align-items-start justify-content-between">
+
+                        <!-- Checkbox and Title Wrapper -->
+                        <div class="form-check m-0 flex-grow-1">
+                            <input class="form-check-input" type="checkbox" checked="@isDone"
+                                   id="todo-@item.Id" @onchange="() => ToggleTaskCompletion(item)" />
+
+                            <label class="form-check-label fw-semibold small @(isDone ? "text-decoration-line-through text-muted" : "")"
+                                   for="todo-@item.Id">
+                                @item.Title
+                            </label>
+
+                            <!-- Expandable Description Field -->
+                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <div class="text-muted extra-small ps-1 text-wrap text-break" style="font-size: 0.8rem;">
+                                    @item.Description
+                                </div>
+                            }
+
+                            <!-- Target Meta Details (Created & Due dates) -->
+                            <div class="text-muted mt-1 ps-1" style="font-size: 0.75rem;">
+                                <span>Created: @item.CreatedDate.ToString("MM/dd/yyyy")</span>
+                                @if (item.DueDate.HasValue)
+                                {
+                                    <span class="ms-2 @(!isDone && item.DueDate < DateTime.Today ? "text-danger fw-bold" : "")">
+                                        Due: @item.DueDate.Value.ToString("MM/dd/yyyy")
+                                    </span>
+                                }
+                                @if (item.CompletedDate.HasValue)
+                                {
+                                    <span class="ms-2 text-success">
+                                        Done: @item.CompletedDate.Value.ToString("MM/dd/yyyy")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- One-Click Delete Command -->
+                        <button class="btn btn-sm btn-link text-danger p-0 border-0 ms-2 text-decoration-none"
+                                @onclick="() => DeleteTask(item.Id)" title="Delete Task">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToDoItem> todos = new();
+
+    // UI state form binds
+    private string newTitle = string.Empty;
+    private string? newDescription = string.Empty;
+    private DateTime? newDueDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshList();
+    }
+
+    // READ operation
+    private async Task RefreshList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        // Displays non-completed items first, sorted by due dates or original addition order
+        todos = await context.ToDoItems
+                             .OrderBy(t => t.CompletedDate != null)
+                             .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
+                             .ThenByDescending(t => t.CreatedDate)
+                             .ToListAsync();
+    }
+
+    // CREATE operation
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle)) return;
+
+        using var context = DbFactory.CreateDbContext();
+
+        var task = new ToDoItem
+        {
+            Title = newTitle.Trim(),
+            Description = string.IsNullOrWhiteSpace(newDescription) ? null : newDescription.Trim(),
+            CreatedDate = DateTime.Now,
+            DueDate = newDueDate,
+            CompletedDate = null
+        };
+
+        context.ToDoItems.Add(task);
+        await context.SaveChangesAsync();
+
+        // Flush text elements cleanly
+        newTitle = string.Empty;
+        newDescription = string.Empty;
+        newDueDate = null;
+
+        await RefreshList();
+    }
+
+    // UPDATE operation
+    private async Task ToggleTaskCompletion(ToDoItem item)
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        if (item.CompletedDate == null)
+        {
+            item.CompletedDate = DateTime.Now; // Flip to finished status
+        }
+        else
+        {
+            item.CompletedDate = null; // Mark as uncompleted again
+        }
+
+        context.ToDoItems.Update(item);
+        await context.SaveChangesAsync();
+        await RefreshList();
+    }
+
+    // DELETE operation
+    private async Task DeleteTask(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var target = await context.ToDoItems.FindAsync(id);
+
+        if (target != null)
+        {
+            context.ToDoItems.Remove(target);
+            await context.SaveChangesAsync();
+            await RefreshList();
+        }
+    }
+}
