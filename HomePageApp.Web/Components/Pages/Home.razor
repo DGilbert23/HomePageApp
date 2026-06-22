@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using HomePageApp.Web.Components.Widgets
+@using Microsoft.AspNetCore.Components.Authorization
 @rendermode InteractiveServer
 
 <PageTitle>Personal Dashboard</PageTitle>
@@ -15,7 +16,15 @@
 
             <div class="card shadow-sm p-3 bg-light">
                 <h5 class="border-bottom pb-2">Calendar Plugin</h5>
-                <p class="text-muted small">Google Calendar embed will go here...</p>
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="me-3">Hello, @context.User.Identity?.Name!</span>
+                        <a class="btn btn-outline-danger btn-sm" href="account/logout" @onclick="HandleSignOut">Sign Out</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a class="btn btn-primary btn-sm" href="account/login">Sign In with Google</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
         </div>
 
@@ -29,3 +38,13 @@
 
     </div>
 </div>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private void HandleSignOut()
+    {     
+        Navigation.NavigateTo("account/logout", forceLoad: true);
+    }
+}
