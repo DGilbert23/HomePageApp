@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace HomePageApp.Infrastructure.Services.GoogleAuth
+namespace HomePageApp.Infrastructure.Services.Google.GoogleAuth
 {
-    public class GoogleAuthService : IExternalApiService
+    public class GoogleAuthService : IGoogleAuthService
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;

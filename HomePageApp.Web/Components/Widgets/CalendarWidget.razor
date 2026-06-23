@@ -1,0 +1,44 @@
+﻿@using HomePageApp.Core.Interfaces
+@using HomePageApp.Core.Models
+@inject ICalendarApiService CalendarService
+
+@if (CalendarData == null)
+{
+    <p>Loading Upcoming Events...</p>
+}
+else
+{
+    <table class="table text-center align-middle">
+        <thead>
+            <tr>
+                <th>Event title</th>
+                <th>Description</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (CalendarData data in CalendarData)
+            {
+                <tr>
+                    <td>@data.Title</td>
+                    <td>@data.Description</td>
+                    <td>@data.StartTime</td>
+                    <td>@data.EndTime</td>
+                    <td><a href="@data.HtmlLink">Go to Event</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<CalendarData>? CalendarData;
+    private bool isScriptInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CalendarData = await CalendarService.GetUpcomingEventsAsync();
+    }
+}

@@ -1,6 +1,6 @@
 ﻿namespace HomePageApp.Core.Interfaces
 {
-    public interface IExternalApiService
+    public interface IGoogleAuthService
     {
         Task<ExternalDataDto?> GetRemoteDataAsync(CancellationToken cancellationToken = default);
     }

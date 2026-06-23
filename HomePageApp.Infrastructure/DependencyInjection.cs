@@ -1,6 +1,7 @@
 ﻿using HomePageApp.Core.Interfaces;
-using HomePageApp.Infrastructure.Services.GoogleAuth;
+using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Infrastructure.Services.WeatherApi;
+using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,16 +28,19 @@ public static class DependencyInjection
         {
             options.ClientId = configuration["Authentication:Google:ClientId"]!;
             options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
-            options.SaveTokens = true; // Required to capture the access_token for the outbound API
+            options.SaveTokens = true;
+            options.Scope.Add("https://www.googleapis.com/auth/calendar");
         });
 
         services.AddAuthorizationBuilder();
 
         // 2. Register the Outbound Client pointing to the external server
-        services.AddHttpClient<IExternalApiService, GoogleAuthService>(client =>
+        services.AddHttpClient<IGoogleAuthService, GoogleAuthService>(client =>
         {
             client.BaseAddress = new Uri(configuration["GoogleApi:BaseUrl"] ?? "");
         });
+
+        services.AddHttpClient<ICalendarApiService, CalendarApiService>();
 
 
         return services;
