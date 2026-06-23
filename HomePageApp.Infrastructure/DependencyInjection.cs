@@ -28,17 +28,17 @@ public static class DependencyInjection
             options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
             options.SaveTokens = true;
             options.Scope.Add("https://www.googleapis.com/auth/calendar");
+            options.AccessType = "offline";
         });
 
         services.AddAuthorizationBuilder();
 
         services.AddHttpClient<IGoogleAuthService, GoogleAuthService>(client =>
         {
-            client.BaseAddress = new Uri(configuration["GoogleApi:BaseUrl"] ?? "");
+            client.BaseAddress = new Uri(configuration["GoogleApi:BaseUrl"] ?? string.Empty);
         });
 
         services.AddHttpClient<ICalendarApiService, CalendarApiService>();
-
 
         return services;
     }

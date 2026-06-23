@@ -1,6 +1,25 @@
-﻿@using HomePageApp.Core.Interfaces
+﻿@using System.Security.Claims;
+@using HomePageApp.Core.Interfaces
 @using HomePageApp.Core.Models
+@using Microsoft.AspNetCore.Components.Authorization
 @inject ICalendarApiService CalendarService
+@inject NavigationManager Navigation
+
+@if (!string.IsNullOrEmpty(firstName))
+{
+    <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
+        <div class="d-flex align-items-center gap-1 mb-1">
+            <span class="material-symbols-outlined">
+                account_circle
+            </span>
+            <div>Welcome @firstName</div>
+        </div>
+
+        <div>
+            <button class="btn btn-primary btn-sm" @onclick="HandleSignOut">Sign Out</button>            
+        </div>
+    </div>
+}
 
 @if (CalendarData == null)
 {
@@ -15,7 +34,7 @@ else
                 <th>Description</th>
                 <th>Start Time</th>
                 <th>End Time</th>
-                <th>Link</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -26,7 +45,13 @@ else
                     <td>@data.Description</td>
                     <td>@data.StartTime</td>
                     <td>@data.EndTime</td>
-                    <td><a href="@data.HtmlLink">Go to Event</a></td>
+                    <td>
+                        <a href="@data.HtmlLink" class="">
+                            <span class="material-symbols-outlined">
+                                arrow_forward
+                            </span>
+                        </a>
+                    </td>                    
                 </tr>
             }
         </tbody>
@@ -36,9 +61,32 @@ else
 @code {
     private List<CalendarData>? CalendarData;
     private bool isScriptInitialized = false;
+    private string? firstName;
+    private string? lastName;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        if (AuthStateTask != null)
+        {
+            var authState = await AuthStateTask;
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? user.Identity.Name;
+                lastName = user.FindFirst(ClaimTypes.Surname)?.Value;
+            }
+        }
+
         CalendarData = await CalendarService.GetUpcomingEventsAsync();
+        CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
+    }
+
+    private void HandleSignOut()
+    {
+        Navigation.NavigateTo("account/logout", forceLoad: true);
     }
 }

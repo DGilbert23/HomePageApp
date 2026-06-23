@@ -37,13 +37,13 @@ public class CalendarApiService : ICalendarApiService
         var requestUrl = _httpClient.BaseAddress + "?timeMin=" + timeMin + "&timeMax=" + timeMax;
 
         try
-        {            
+        {
             var response = await _httpClient.GetFromJsonAsync<CalendarResponse>(requestUrl, cancellationToken);
 
             if (response?.Items == null) return new List<CalendarData>();
 
             List<CalendarData> calendarDatas = new List<CalendarData>();
-            foreach(Item item in response.Items)
+            foreach (Item item in response.Items)
             {
                 calendarDatas.Add(new CalendarData
                 {
