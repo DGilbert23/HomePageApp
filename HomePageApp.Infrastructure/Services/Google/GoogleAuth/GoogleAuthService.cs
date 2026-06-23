@@ -22,12 +22,10 @@ namespace HomePageApp.Infrastructure.Services.Google.GoogleAuth
             var httpContext = _httpContextAccessor.HttpContext;
             if (httpContext == null) return null;
 
-            // Automatically fetch the access token stored during the Google cookie session setup
             var accessToken = await httpContext.GetTokenAsync("access_token");
 
             if (!string.IsNullOrEmpty(accessToken))
             {
-                // Attach the token outside of your presentation/UI codebase
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
             else
@@ -35,7 +33,6 @@ namespace HomePageApp.Infrastructure.Services.Google.GoogleAuth
                 return null;
             }
 
-            // Send the authenticated request out to the third-party endpoint
             return await _httpClient.GetFromJsonAsync<ExternalDataDto>("v1/protected-records", cancellationToken);
         }
     }

@@ -10,7 +10,6 @@
         <span class="badge bg-primary rounded-pill">@todos.Count(t => t.CompletedDate == null) remaining</span>
     </div>
 
-    <!-- Quick Add Form (Title & Due Date) -->
     <div class="bg-light p-2 rounded mb-3 border">
         <div class="row g-2">
             <div class="col-md-7">
@@ -31,7 +30,6 @@
         </div>
     </div>
 
-    <!-- Task List View -->
     @if (todos == null)
     {
         <div class="text-center p-3">
@@ -52,7 +50,6 @@
                 <div class="list-group-item px-1 py-2 bg-transparent border-bottom">
                     <div class="d-flex align-items-start justify-content-between">
 
-                        <!-- Checkbox and Title Wrapper -->
                         <div class="form-check m-0 flex-grow-1">
                             <input class="form-check-input" type="checkbox" checked="@isDone"
                                    id="todo-@item.Id" @onchange="() => ToggleTaskCompletion(item)" />
@@ -62,7 +59,6 @@
                                 @item.Title
                             </label>
 
-                            <!-- Expandable Description Field -->
                             @if (!string.IsNullOrWhiteSpace(item.Description))
                             {
                                 <div class="text-muted extra-small ps-1 text-wrap text-break" style="font-size: 0.8rem;">
@@ -70,7 +66,6 @@
                                 </div>
                             }
 
-                            <!-- Target Meta Details (Created & Due dates) -->
                             <div class="text-muted mt-1 ps-1" style="font-size: 0.75rem;">
                                 <span>Created: @item.CreatedDate.ToString("MM/dd/yyyy")</span>
                                 @if (item.DueDate.HasValue)
@@ -88,7 +83,6 @@
                             </div>
                         </div>
 
-                        <!-- One-Click Delete Command -->
                         <button class="btn btn-sm btn-link text-danger p-0 border-0 ms-2 text-decoration-none"
                                 @onclick="() => DeleteTask(item.Id)" title="Delete Task">
                             &times;
@@ -103,7 +97,6 @@
 @code {
     private List<ToDoItem> todos = new();
 
-    // UI state form binds
     private string newTitle = string.Empty;
     private string? newDescription = string.Empty;
     private DateTime? newDueDate;
@@ -113,11 +106,9 @@
         await RefreshList();
     }
 
-    // READ operation
     private async Task RefreshList()
     {
         using var context = DbFactory.CreateDbContext();
-        // Displays non-completed items first, sorted by due dates or original addition order
         todos = await context.ToDoItems
                              .OrderBy(t => t.CompletedDate != null)
                              .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
@@ -125,7 +116,6 @@
                              .ToListAsync();
     }
 
-    // CREATE operation
     private async Task AddTask()
     {
         if (string.IsNullOrWhiteSpace(newTitle)) return;
@@ -144,7 +134,6 @@
         context.ToDoItems.Add(task);
         await context.SaveChangesAsync();
 
-        // Flush text elements cleanly
         newTitle = string.Empty;
         newDescription = string.Empty;
         newDueDate = null;
@@ -152,18 +141,17 @@
         await RefreshList();
     }
 
-    // UPDATE operation
     private async Task ToggleTaskCompletion(ToDoItem item)
     {
         using var context = DbFactory.CreateDbContext();
 
         if (item.CompletedDate == null)
         {
-            item.CompletedDate = DateTime.Now; // Flip to finished status
+            item.CompletedDate = DateTime.Now;
         }
         else
         {
-            item.CompletedDate = null; // Mark as uncompleted again
+            item.CompletedDate = null;
         }
 
         context.ToDoItems.Update(item);
@@ -171,7 +159,6 @@
         await RefreshList();
     }
 
-    // DELETE operation
     private async Task DeleteTask(int id)
     {
         using var context = DbFactory.CreateDbContext();

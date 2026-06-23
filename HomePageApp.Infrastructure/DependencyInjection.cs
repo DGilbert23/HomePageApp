@@ -10,14 +10,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Register the Weather Service HttpClient with Base URL
         services.AddHttpClient<IWeatherApiService, WeatherApiService>(client =>
         {
             var baseUrl = configuration["WeatherApiSettings:BaseUrl"];
             client.BaseAddress = new Uri(baseUrl ?? "");
         });
 
-        // Configure Local App Authentication using Google
         services.AddAuthentication(options =>
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -34,7 +32,6 @@ public static class DependencyInjection
 
         services.AddAuthorizationBuilder();
 
-        // 2. Register the Outbound Client pointing to the external server
         services.AddHttpClient<IGoogleAuthService, GoogleAuthService>(client =>
         {
             client.BaseAddress = new Uri(configuration["GoogleApi:BaseUrl"] ?? "");

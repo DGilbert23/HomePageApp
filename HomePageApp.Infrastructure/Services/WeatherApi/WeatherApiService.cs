@@ -14,14 +14,11 @@ namespace HomePageApp.Infrastructure.Services.WeatherApi
         public WeatherApiService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-
-            // Grab the key securely from configuration
             _apiKey = configuration["WeatherApiSettings:ApiKey"] ?? string.Empty;
         }
 
         public async Task<WeatherData> GetWidgetWeatherAsync(string zip)
         {
-            // Construct the full request path with the API key query parameter safely encoded
             var requestUrl = $"v1/forecast.json?key={_apiKey}&q={Uri.EscapeDataString(zip)}&days=4";
 
             try
@@ -59,7 +56,6 @@ namespace HomePageApp.Infrastructure.Services.WeatherApi
             }
             catch (HttpRequestException)
             {
-                // Handle API downtime or bad requests gracefully
                 return new WeatherData { City = "Unavailable" };
             }
         }

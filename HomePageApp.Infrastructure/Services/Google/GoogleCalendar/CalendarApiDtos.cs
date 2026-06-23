@@ -9,7 +9,6 @@ namespace HomePageApp.Infrastructure.Services.Google.GoogleCalendar
         List<Item> Items
         );
 
-    // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
     public class Creator
     {
         [JsonPropertyName("email")]
