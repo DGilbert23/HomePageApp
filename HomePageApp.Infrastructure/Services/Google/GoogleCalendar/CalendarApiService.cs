@@ -1,11 +1,14 @@
 ﻿using HomePageApp.Core.Interfaces;
 using HomePageApp.Core.Models;
 using HomePageApp.Infrastructure.Services.Google.GoogleCalendar;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 namespace Infrastructure.Services;
@@ -13,21 +16,21 @@ namespace Infrastructure.Services;
 public class CalendarApiService : ICalendarApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IGoogleAuthService _googleAuthService;
 
-    public CalendarApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+    public CalendarApiService(
+        HttpClient httpClient,
+        IGoogleAuthService googleAuthService,
+        IConfiguration configuration)
     {
         _httpClient = httpClient;
-        _httpContextAccessor = httpContextAccessor;
+        _googleAuthService = googleAuthService;
         _httpClient.BaseAddress = new Uri(configuration["GoogleCalendarApi:BaseUrl"] ?? string.Empty);
     }
 
     public async Task<List<CalendarData>> GetUpcomingEventsAsync(CancellationToken cancellationToken = default)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null) return new List<CalendarData>();
-
-        var accessToken = await httpContext.GetTokenAsync("access_token");
+        var accessToken = await _googleAuthService.GetValidAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken)) return new List<CalendarData>();
 
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -57,9 +60,13 @@ public class CalendarApiService : ICalendarApiService
             }
             return calendarDatas;
         }
-        catch (Exception)
+        catch(HttpRequestException ex)
         {
-            return new List<CalendarData>();
+            throw new HttpRequestException($"Google Calendar API failure (Status: {ex.StatusCode}). Detail: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unexpected error compiling calendar data: {ex.Message}", ex);
         }
     }
 }

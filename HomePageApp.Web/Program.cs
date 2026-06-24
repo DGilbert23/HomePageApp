@@ -37,7 +37,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 
-//Capture login (?)
 app.MapGet("account/login", async (HttpContext httpContext) =>
 {
     await httpContext.ChallengeAsync("Google", new AuthenticationProperties { RedirectUri = "/" });
@@ -48,6 +47,30 @@ app.MapGet("account/logout", async (HttpContext httpContext) =>
 {
     await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     httpContext.Response.Redirect("/");
+});
+
+app.MapGet("api/debug-tokens", async (HttpContext httpContext) =>
+{
+    var accessToken = await httpContext.GetTokenAsync("access_token");
+    var refreshToken = await httpContext.GetTokenAsync("refresh_token");
+    var expiresAt = await httpContext.GetTokenAsync("expires_at");
+
+    return Results.Ok(new
+    {
+        HasAccessToken = !string.IsNullOrEmpty(accessToken),
+        AccessTokenPreview = accessToken != null && accessToken.Length > 10
+            ? accessToken.Substring(0, 10) + "..."
+            : accessToken,
+
+        HasRefreshToken = !string.IsNullOrEmpty(refreshToken),
+        RefreshTokenPreview = refreshToken != null && refreshToken.Length > 10
+            ? refreshToken.Substring(0, 10) + "..."
+            : "MISSING",
+
+        ExpiresAtRawString = expiresAt,
+        ParsedUtcTime = DateTimeOffset.TryParse(expiresAt, out var dt) ? dt.ToString("u") : "Failed to parse",
+        CurrentUtcTime = DateTimeOffset.UtcNow.ToString("u")
+    });
 });
 
 app.Run();

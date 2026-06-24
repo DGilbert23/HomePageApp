@@ -1,6 +1,7 @@
 ﻿@using HomePageApp.Core.Interfaces
 @using HomePageApp.Core.Models
 @inject IWeatherApiService WeatherService
+@inject IJSRuntime JSRuntime
 
 <div class="weather-card">
     @if (weather == null)
@@ -126,9 +127,7 @@
 
 @code {
     private WeatherData? weather;
-    private bool isScriptInitialized = false;
-
-    @inject IJSRuntime JSRuntime
+    private bool isScriptInitialized = false;    
 
     protected override async Task OnInitializedAsync()
     {

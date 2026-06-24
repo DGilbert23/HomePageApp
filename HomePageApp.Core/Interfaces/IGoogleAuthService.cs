@@ -2,8 +2,9 @@
 {
     public interface IGoogleAuthService
     {
-        Task<ExternalDataDto?> GetRemoteDataAsync(CancellationToken cancellationToken = default);
+        Task<GoogleAuthDto?> GetRemoteDataAsync(CancellationToken cancellationToken = default);
+        Task<string?> GetValidAccessTokenAsync();
     }
 
-    public record ExternalDataDto(string Id, string Content, DateTime FetchedAt);
+    public record GoogleAuthDto(string Id, string Content, DateTime FetchedAt);
 }

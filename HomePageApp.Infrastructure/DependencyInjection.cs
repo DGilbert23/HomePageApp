@@ -28,7 +28,15 @@ public static class DependencyInjection
             options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
             options.SaveTokens = true;
             options.Scope.Add("https://www.googleapis.com/auth/calendar");
-            options.AccessType = "offline";
+            options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+            {
+                OnRedirectToAuthorizationEndpoint = context =>
+                {
+                    // Appends the offline access request flag to Google's sign-in landing URL
+                    context.Response.Redirect(context.RedirectUri + "&access_type=offline");
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         services.AddAuthorizationBuilder();
