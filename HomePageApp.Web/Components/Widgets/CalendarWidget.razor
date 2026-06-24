@@ -5,58 +5,109 @@
 @inject ICalendarApiService CalendarService
 @inject NavigationManager Navigation
 
-@if (!string.IsNullOrEmpty(firstName))
-{
-    <div class="d-flex align-items-center justify-content-between mb-4 mt-2">
-        <div class="d-flex align-items-center gap-1 mb-1">
-            <span class="material-symbols-outlined">
-                account_circle
-            </span>
-            <div>Welcome @firstName</div>
-        </div>
+<div class="container-fluid px-0">
+    <div class="row g-4 align-items-start">
 
-        <div>
-            <button class="btn btn-primary btn-sm" @onclick="HandleSignOut">Sign Out</button>            
+        @if (!string.IsNullOrEmpty(firstName))
+        {
+            <div class="col-xl-3 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 bg-light p-3 sticky-top" style="top: 20px;">
+                    <div class="text-center">
+                        <!-- Swapped massive icon for a smaller, cleaner visual anchor -->
+                        <span class="material-symbols-outlined text-primary fs-2 mb-2">
+                            account_circle
+                        </span>
+
+                        <!-- Combined onto a single row with smaller text size to prevent forced line breaks -->
+                        <div class="text-dark small fw-medium mb-1">Welcome back,</div>
+                        <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@firstName @lastName">
+                            @firstName @lastName
+                        </h6>
+
+                        <hr class="text-muted opacity-25 my-2" />
+
+                        <!-- Made button more compact with smaller padding (py-1) and smaller font (small) -->
+                        <button class="btn btn-outline-danger w-100 rounded-3 py-1 mt-1 d-flex align-items-center justify-content-center gap-2 btn-sm fw-semibold" @onclick="HandleSignOut">
+                            <span class="material-symbols-outlined fs-6">logout</span>
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="@(!string.IsNullOrEmpty(firstName) ? "col-xl-9 col-lg-8" : "col-12")">
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+
+                <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">Upcoming Events</h4>
+                    </div>
+                    @if (CalendarData != null)
+                    {
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold">
+                            @CalendarData.Count Events Total
+                        </span>
+                    }
+                </div>
+
+                @if (CalendarData == null)
+                {
+                    <div class="d-flex align-items-center justify-content-center py-5 my-4 text-muted gap-3">
+                        <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;" role="status"></div>
+                        <span class="fs-5">Fetching agenda details...</span>
+                    </div>
+                }
+                else if (!CalendarData.Any())
+                {
+                    <div class="text-center text-muted">
+                        <span class="material-symbols-outlined display-1 mb-3 text-body-tertiary">calendar_today</span>
+                        <h5 class="fw-semibold">Clear Schedule</h5>
+                        <p class="text-muted">You have no events for the next three days.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (CalendarData data in CalendarData)
+                        {
+                            <div class="event-row p-3 border rounded-3 d-flex align-items-center justify-content-between bg-white bg-hover-light transition-all">
+                                <div class="d-flex align-items-center gap-4 flex-grow-1" style="max-width: 85%;">
+                                    <div class="time-container bg-light rounded-3 p-2 text-center border-start border-primary border-4" style="min-width: 145px;">
+                                        <!-- Event Date Header -->
+                                        <div class="small fw-bold text-dark mb-1 pb-1 border-bottom border-secondary border-opacity-10">
+                                            @(data.StartTime?.ToString("ddd, MMM dd") ?? "Multi-Day")
+                                        </div>
+                                        <!-- Event Time Strings -->
+                                        <div class="text-primary fw-semibold small">
+                                            @(data.StartTime?.ToString("h:mm tt") ?? "--:--")
+                                        </div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            to @(data.EndTime?.ToString("h:mm tt") ?? "--:--")
+                                        </div>
+                                    </div>
+
+                                    <div class="overflow-hidden">
+                                        <h5 class="mb-1 fw-bold text-dark text-truncate">@data.Title</h5>
+                                        <p class="mb-0 text-secondary text-truncate-2-lines">@data.Description</p>
+                                    </div>
+                                </div>
+
+                                <div class="ms-3">
+                                    <a href="@data.HtmlLink" target="_blank" class="btn btn-light border-0 rounded-circle p-3 d-inline-flex align-items-center justify-content-center custom-action-btn" title="View Full Event Details">
+                                        <span class="material-symbols-outlined text-primary fs-4 transition-transform">
+                                            arrow_forward
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     </div>
-}
-
-@if (CalendarData == null)
-{
-    <p>Loading Upcoming Events...</p>
-}
-else
-{
-    <table class="table text-center align-middle">
-        <thead>
-            <tr>
-                <th>Event title</th>
-                <th>Description</th>
-                <th>Start Time</th>
-                <th>End Time</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (CalendarData data in CalendarData)
-            {
-                <tr>
-                    <td>@data.Title</td>
-                    <td>@data.Description</td>
-                    <td>@data.StartTime</td>
-                    <td>@data.EndTime</td>
-                    <td>
-                        <a href="@data.HtmlLink" class="">
-                            <span class="material-symbols-outlined">
-                                arrow_forward
-                            </span>
-                        </a>
-                    </td>                    
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+</div>
 
 @code {
     private List<CalendarData>? CalendarData;
