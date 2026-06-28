@@ -115,6 +115,7 @@
     private bool isScriptInitialized = false;
     private string? firstName;
     private string? lastName;
+    private string? _errorMessage;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthStateTask { get; set; }
@@ -141,7 +142,16 @@
         catch(Exception ex)
         {
             CalendarData = new List<CalendarData>();             
-            await JSRuntime.InvokeVoidAsync("console.error", $"[Calendar Error] {ex.Message}");
+            _errorMessage = $"[Calendar Error] {ex.Message}";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender && !string.IsNullOrEmpty(_errorMessage))
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", _errorMessage);
+            _errorMessage = null;
         }
     }
 

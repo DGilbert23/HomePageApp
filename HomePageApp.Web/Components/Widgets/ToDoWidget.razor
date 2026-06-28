@@ -46,51 +46,125 @@
             @foreach (var item in todos)
             {
                 var isDone = item.CompletedDate != null;
+                var isEditing = editingTaskId == item.Id;
 
-                <div class="list-group-item px-1 py-2 bg-transparent border-bottom">
-                    <div class="d-flex align-items-start justify-content-between">
+                <div class="list-group-item px-3 py-3 bg-transparent border-bottom">
+                    <div class="row align-items-center g-3">
+                        <div class="col-auto">
+                            <input class="form-check-input m-0" type="checkbox" checked="@isDone" disabled="@isEditing"
+                                   id="todo-@item.Id" @onchange="() => ToggleTaskCompletion(item)" style="transform: scale(1.3); cursor: pointer;" />
+                        </div>
 
-                        <div class="form-check m-0 flex-grow-1">
-                            <input class="form-check-input" type="checkbox" checked="@isDone"
-                                   id="todo-@item.Id" @onchange="() => ToggleTaskCompletion(item)" />
-
-                            <label class="form-check-label fw-semibold small @(isDone ? "text-decoration-line-through text-muted" : "")"
-                                   for="todo-@item.Id">
-                                @item.Title
-                            </label>
-
-                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                        <div class="col">
+                            @if (isEditing)
                             {
-                                <div class="text-muted extra-small ps-1 text-wrap text-break" style="font-size: 0.8rem;">
-                                    @item.Description
+                                <div class="mb-2">
+                                    <label class="form-label text-muted mb-1 fs-6 fw-medium">Task Title</label>
+                                    <input type="text" class="form-control form-control-lg fs-5 fw-semibold"
+                                           @bind="editTitle" placeholder="Task title..." />
+                                </div>
+                                <div>
+                                    <label class="form-label text-muted mb-1 fs-6 fw-medium">Description</label>
+                                    <textarea class="form-control form-control-lg fs-5" rows="2"
+                                              @bind="editDescription" placeholder="Add details or notes (optional)..."></textarea>
                                 </div>
                             }
+                            else
+                            {
+                                <div>
+                                    <label class="form-check-label fs-5 fw-semibold d-block @(isDone ? "text-decoration-line-through text-muted" : "")"
+                                           for="todo-@item.Id" style="cursor: pointer;">
+                                        @item.Title
+                                    </label>
 
-                            <div class="text-muted mt-1 ps-1" style="font-size: 0.75rem;">
-                                <span>Created: @item.CreatedDate.ToString("MM/dd/yyyy")</span>
-                                @if (item.DueDate.HasValue)
+                                    <!-- Description on its own row below title -->
+                                    @if (!string.IsNullOrWhiteSpace(item.Description))
+                                    {
+                                        <div class="text-muted fs-6 mt-1 text-wrap text-break fw-normal">
+                                            @item.Description
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted opacity-50 fs-6 mt-1 fst-italic">
+                                            No description provided.
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-md-2 text-md-center">
+                            <span class="text-muted d-block small uppercase tracking-wider text-xs mb-1">Created</span>
+                            <span class="fs-6 fw-medium bg-light px-2 py-1 rounded d-inline-block">
+                                @item.CreatedDate.ToString("MM/dd/yyyy")
+                            </span>
+                        </div>
+
+                        <div class="col-md-2 text-md-center">
+                            @if (isEditing)
+                            {
+                                <label class="form-label text-muted mb-1 fs-6 fw-medium d-block">Due Date</label>
+                                <input type="date" class="form-control form-control-lg fs-6 text-center"
+                                       @bind="editDueDate" />
+                            }
+                            else
+                            {
+                                @if (isDone)
                                 {
-                                    <span class="ms-2 @(!isDone && item.DueDate < DateTime.Today ? "text-danger fw-bold" : "")">
-                                        Due: @item.DueDate.Value.ToString("MM/dd/yyyy")
+                                    <span class="bg-success-subtle text-success px-2 py-1 rounded fw-semibold fs-6 d-inline-block">
+                                        ✅ Done: @item.CompletedDate!.Value.ToString("MM/dd/yyyy")
                                     </span>
                                 }
-                                @if (item.CompletedDate.HasValue)
+                                else if (item.DueDate.HasValue)
                                 {
-                                    <span class="ms-2 text-success">
-                                        Done: @item.CompletedDate.Value.ToString("MM/dd/yyyy")
+                                    var isOverdue = item.DueDate < DateTime.Today;
+                                    <span class="px-2 py-1 rounded fw-semibold fs-6 d-inline-block @(isOverdue ? "bg-danger text-white" : "bg-warning-subtle text-warning-emphasis")">
+                                        📅 Due: @item.DueDate.Value.ToString("MM/dd/yyyy")
                                     </span>
                                 }
+                                else
+                                {
+                                    <span class="text-muted opacity-50 fs-6 fst-italic d-inline-block py-1">
+                                        No deadline
+                                    </span>
+                                }
+                            }
+                        </div>
+
+                        <div class="col-auto ms-auto">
+                            <div class="d-flex align-items-center gap-2">
+                                @if (isEditing)
+                                {
+                                    <button class="btn btn-success btn-lg px-3 py-2 fs-6 fw-medium"
+                                            @onclick="() => SaveTask(item)" title="Save Changes">
+                                        💾 Save
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-lg px-3 py-2 fs-6"
+                                            @onclick="CancelEdit" title="Cancel Edit">
+                                        Cancel
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-primary btn-lg px-3 py-2 fs-6 fw-medium"
+                                            @onclick="() => StartEdit(item)" title="Edit Task">
+                                        ✏️ Edit
+                                    </button>
+                                }
+
+                                <button class="btn btn-outline-danger btn-lg px-3 py-2 fs-6"
+                                        @onclick="() => DeleteTask(item.Id)" title="Delete Task">
+                                    🗑️ Delete
+                                </button>
                             </div>
                         </div>
 
-                        <button class="btn btn-sm btn-link text-danger p-0 border-0 ms-2 text-decoration-none"
-                                @onclick="() => DeleteTask(item.Id)" title="Delete Task">
-                            &times;
-                        </button>
                     </div>
                 </div>
             }
         </div>
+
     }
 </div>
 
@@ -100,6 +174,10 @@
     private string newTitle = string.Empty;
     private string? newDescription = string.Empty;
     private DateTime? newDueDate;
+    private int? editingTaskId;
+    private string editTitle = string.Empty;
+    private string? editDescription = string.Empty;
+    private DateTime? editDueDate;
 
     protected override async Task OnInitializedAsync()
     {
@@ -170,5 +248,50 @@
             await context.SaveChangesAsync();
             await RefreshList();
         }
+    }
+
+    // Triggered when clicking the Edit (✏️) button
+    private void StartEdit(ToDoItem item)
+    {
+        editingTaskId = item.Id;
+        editTitle = item.Title ?? "";
+        editDescription = item.Description;
+        editDueDate = item.DueDate;
+    }
+
+    // Triggered when clicking the Cancel (×) button during an edit
+    private void CancelEdit()
+    {
+        editingTaskId = null;
+        editTitle = string.Empty;
+        editDescription = string.Empty;
+        editDueDate = null;
+    }
+
+    // Triggered when clicking the Save (💾) button
+    private async Task SaveTask(ToDoItem item)
+    {
+        // Don't save if the user cleared out the title
+        if (string.IsNullOrWhiteSpace(editTitle)) return;
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Fetch the fresh database tracking entity to avoid concurrency issues
+        var target = await context.ToDoItems.FindAsync(item.Id);
+
+        if (target != null)
+        {
+            // Apply the inline modifications
+            target.Title = editTitle.Trim();
+            target.Description = string.IsNullOrWhiteSpace(editDescription) ? null : editDescription.Trim();
+            target.DueDate = editDueDate;
+
+            context.ToDoItems.Update(target);
+            await context.SaveChangesAsync();
+        }
+
+        // Reset the state to exit edit mode and refresh UI
+        CancelEdit();
+        await RefreshList();
     }
 }
