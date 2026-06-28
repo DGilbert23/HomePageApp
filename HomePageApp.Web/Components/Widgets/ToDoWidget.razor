@@ -1,13 +1,14 @@
-﻿@using Microsoft.EntityFrameworkCore
+﻿@using HomePageApp.Core.Interfaces
 @using HomePageApp.Core.Models
 @using HomePageApp.Infrastructure
-@inject IDbContextFactory<AppDbContext> DbFactory
+@using Microsoft.EntityFrameworkCore
+@inject IToDoRepository ToDoRepository
 
 
 <div class="card-body p-3">
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
         <h5 class="m-0 text-primary fw-bold">Active Tasks</h5>
-        <span class="badge bg-primary rounded-pill">@todos.Count(t => t.CompletedDate == null) remaining</span>
+        <span class="badge bg-primary rounded-pill">@toDoList.Count(t => t.CompletedDate == null) remaining</span>
     </div>
 
     <div class="bg-light p-2 rounded mb-3 border">
@@ -30,25 +31,25 @@
         </div>
     </div>
 
-    @if (todos == null)
+    @if (toDoList == null)
     {
         <div class="text-center p-3">
             <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
         </div>
     }
-    else if (!todos.Any())
+    else if (!toDoList.Any())
     {
         <p class="text-muted text-center small my-3">No tasks found. Add one above!</p>
     }
     else
     {
         <div class="list-group list-group-flush">
-            @foreach (var item in todos)
+            @foreach (var item in toDoList)
             {
                 var isDone = item.CompletedDate != null;
                 var isEditing = editingTaskId == item.Id;
 
-                <div class="list-group-item px-3 py-3 bg-transparent border-bottom">
+                <div @key="item.Id" class="list-group-item px-3 py-3 bg-transparent border-bottom">
                     <div class="row align-items-center g-3">
                         <div class="col-auto">
                             <input class="form-check-input m-0" type="checkbox" checked="@isDone" disabled="@isEditing"
@@ -169,7 +170,7 @@
 </div>
 
 @code {
-    private List<ToDoItem> todos = new();
+    private List<ToDoItem> toDoList = new();
 
     private string newTitle = string.Empty;
     private string? newDescription = string.Empty;
@@ -179,26 +180,15 @@
     private string? editDescription = string.Empty;
     private DateTime? editDueDate;
 
+
     protected override async Task OnInitializedAsync()
     {
         await RefreshList();
     }
 
-    private async Task RefreshList()
-    {
-        using var context = DbFactory.CreateDbContext();
-        todos = await context.ToDoItems
-                             .OrderBy(t => t.CompletedDate != null)
-                             .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
-                             .ThenByDescending(t => t.CreatedDate)
-                             .ToListAsync();
-    }
-
     private async Task AddTask()
     {
         if (string.IsNullOrWhiteSpace(newTitle)) return;
-
-        using var context = DbFactory.CreateDbContext();
 
         var task = new ToDoItem
         {
@@ -209,8 +199,7 @@
             CompletedDate = null
         };
 
-        context.ToDoItems.Add(task);
-        await context.SaveChangesAsync();
+        await ToDoRepository.AddTaskAsync(task);
 
         newTitle = string.Empty;
         newDescription = string.Empty;
@@ -219,35 +208,21 @@
         await RefreshList();
     }
 
+    private async Task RefreshList()
+    {
+        toDoList = await ToDoRepository.GetAllTasksAsync();
+    }
+
     private async Task ToggleTaskCompletion(ToDoItem item)
     {
-        using var context = DbFactory.CreateDbContext();
-
-        if (item.CompletedDate == null)
-        {
-            item.CompletedDate = DateTime.Now;
-        }
-        else
-        {
-            item.CompletedDate = null;
-        }
-
-        context.ToDoItems.Update(item);
-        await context.SaveChangesAsync();
+        await ToDoRepository.ToggleTaskCompletionAsync(item);
         await RefreshList();
     }
 
     private async Task DeleteTask(int id)
     {
-        using var context = DbFactory.CreateDbContext();
-        var target = await context.ToDoItems.FindAsync(id);
-
-        if (target != null)
-        {
-            context.ToDoItems.Remove(target);
-            await context.SaveChangesAsync();
-            await RefreshList();
-        }
+        await ToDoRepository.DeleteTaskAsync(id);
+        await RefreshList();
     }
 
     // Triggered when clicking the Edit (✏️) button
@@ -274,23 +249,7 @@
         // Don't save if the user cleared out the title
         if (string.IsNullOrWhiteSpace(editTitle)) return;
 
-        using var context = DbFactory.CreateDbContext();
-
-        // Fetch the fresh database tracking entity to avoid concurrency issues
-        var target = await context.ToDoItems.FindAsync(item.Id);
-
-        if (target != null)
-        {
-            // Apply the inline modifications
-            target.Title = editTitle.Trim();
-            target.Description = string.IsNullOrWhiteSpace(editDescription) ? null : editDescription.Trim();
-            target.DueDate = editDueDate;
-
-            context.ToDoItems.Update(target);
-            await context.SaveChangesAsync();
-        }
-
-        // Reset the state to exit edit mode and refresh UI
+        await ToDoRepository.SaveTaskAsync(item);
         CancelEdit();
         await RefreshList();
     }

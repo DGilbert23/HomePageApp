@@ -1,4 +1,6 @@
+using HomePageApp.Core.Interfaces;
 using HomePageApp.Infrastructure;
+using HomePageApp.Infrastructure.Repositories;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,6 +15,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IToDoRepository, EfToDoRepository>();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
