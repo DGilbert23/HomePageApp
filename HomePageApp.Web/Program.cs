@@ -1,5 +1,6 @@
 using HomePageApp.Core.Interfaces;
 using HomePageApp.Infrastructure;
+using HomePageApp.Infrastructure.FileSystem;
 using HomePageApp.Infrastructure.Repositories;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
@@ -19,6 +20,9 @@ builder.Services.AddScoped<IToDoRepository, EfToDoRepository>();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
+
+var path = Path.Combine(builder.Environment.WebRootPath, "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
+builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
 
 var app = builder.Build();
 

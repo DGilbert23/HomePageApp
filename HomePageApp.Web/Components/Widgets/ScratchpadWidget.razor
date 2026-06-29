@@ -1,0 +1,48 @@
+﻿@using HomePageApp.Core.Interfaces
+@implements IAsyncDisposable
+@inject IScratchPadStorage ScratchPadStorage
+@inject IJSRuntime JSRuntime
+
+<h3>Scratch Pad</h3>
+
+<div>
+    <textarea @ref="scratchpad" class="form-control form-control-lg" @onblur="SaveAsync" @oninput="ResizeTextareaAsync" @bind="content" style="overflow:hidden; resize:none"></textarea>
+</div>
+
+@code {
+    private string content = string.Empty;
+    private ElementReference scratchpad;
+    private IJSObjectReference? module;
+
+    protected override async Task OnInitializedAsync()
+    {
+        content = await ScratchPadStorage.Load();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Widgets/ScratchPadWidget.razor.js");
+
+            await ResizeTextareaAsync();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await ScratchPadStorage.SaveAsync(content);
+    }
+
+    private async void SaveAsync()
+    {
+        await ScratchPadStorage.SaveAsync(content);
+    }
+
+    private async Task ResizeTextareaAsync()
+    {
+        if (module is not null)
+            await module.InvokeVoidAsync("autoResizeTextArea", scratchpad);
+    }
+}
