@@ -1,5 +1,5 @@
 ﻿using HomePageApp.Core.Interfaces;
-using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.ToDoList;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using System;
@@ -21,6 +21,15 @@ namespace HomePageApp.Infrastructure.Repositories
         {
             using var context = _dbFactory.CreateDbContext();
             return await context.ToDoItems.OrderBy(t => t.CompletedDate != null)
+                                          .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
+                                          .ThenByDescending(t => t.CreatedDate).ToListAsync<ToDoItem>();
+        }
+
+        public async Task<List<ToDoItem>> GetCurrentTasksAsync()
+        {
+            using var context = _dbFactory.CreateDbContext();
+            return await context.ToDoItems.Where(t => t.CompletedDate > DateTime.Now.AddDays(-3) || t.CompletedDate == null)
+                                          .OrderBy(t => t.CompletedDate != null)
                                           .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                                           .ThenByDescending(t => t.CreatedDate).ToListAsync<ToDoItem>();
         }

@@ -1,4 +1,4 @@
-﻿using HomePageApp.Core.Models;
+﻿using HomePageApp.Core.Models.CalendarApi;
 
 namespace HomePageApp.Core.Interfaces
 {

@@ -1,6 +1,6 @@
 ﻿namespace HomePageApp.Core.Interfaces;
 
-using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.WeatherApi;
 
 public interface IWeatherApiService
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HomePageApp.Core.Models
+﻿namespace HomePageApp.Core.Models.CalendarApi
 {
     public class CalendarData
     {
@@ -11,6 +7,6 @@ namespace HomePageApp.Core.Models
         public string? Description { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public string HtmlLink { get; set;  }
+        public string HtmlLink { get; set; }
     }
 }

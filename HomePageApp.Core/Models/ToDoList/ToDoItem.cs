@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace HomePageApp.Core.Models
+namespace HomePageApp.Core.Models.ToDoList
 {
     public class ToDoItem
     {

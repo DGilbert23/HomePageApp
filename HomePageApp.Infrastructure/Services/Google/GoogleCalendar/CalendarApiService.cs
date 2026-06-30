@@ -1,5 +1,5 @@
 ﻿using HomePageApp.Core.Interfaces;
-using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.CalendarApi;
 using HomePageApp.Infrastructure.Services.Google.GoogleCalendar;
 using Microsoft.Extensions.Configuration;
 using System;

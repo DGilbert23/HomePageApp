@@ -1,0 +1,107 @@
+﻿@using HomePageApp.Core.Models.BillTracker
+@using HomePageApp.Core.Interfaces
+@inject IBillTrackerRepository BillTrackerRepository
+
+
+
+<div class="card-body p-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="m-0 text-primary fw-bold">Bill Tracker</h5>
+        <span class="badge bg-primary rounded-pill">@billList.Count() bills due in next 3 days</span>
+    </div>
+
+    <div class="bg-light p-2 rounded mb-3 border">
+        <div class="row g-2">
+            <div class="col">
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Task title..." @bind="newName" />
+            </div>
+            <div class="col">
+                <input type="date" class="form-control form-control-sm"
+                       @bind="newStartDue" title="Start Due Date" />
+            </div>
+            <div class="col-1">
+                <div class="row">
+                    <div class="col">
+                        <label>Reoccurring?: </label>
+                    </div>
+                    <div class="col">
+                        <input type="checkbox" @bind="newReoccurring" title="Reoccurring?" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-1">
+                <select @bind="newFrequency">
+                    <option value="" selected></option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="QUARTERLY">Quarterly</option>
+                </select>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-sm btn-primary w-100" type="button" @onclick="AddBill">Add</button>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <input type="number" @bind="newEstimatedAmountDue" title="Estimated Amount Due (optional)" />
+            </div>
+            <div class="col">
+                <input type="url" @bind="newPaymentUrl" title="Payment URL (optional)" />
+            </div>
+        </div>
+        <div class="mt-2">
+            <input type="text" class="form-control form-control-sm"
+                   placeholder="Description (optional)..." @bind="newDescription" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Bill> billList = new();
+    private string? newName = string.Empty;
+    private string? newDescription = string.Empty;
+    private bool newReoccurring = false;
+    private string? newFrequency;
+    private DateTime? newStartDue;
+    private double? newEstimatedAmountDue = null;
+    private string? newPaymentUrl = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshList();
+    }
+
+    private async Task RefreshList()
+    {
+        billList = await BillTrackerRepository.GetUpcomingBillsAsync();
+    }
+
+    private async Task AddBill()
+    {
+        if (newStartDue == null)
+            return; //Can't have a null StartDue. Need to handle better.
+
+        var task = new Bill
+        {
+            Name = newName,
+            Description = newDescription,
+            Reoccurring = newReoccurring,
+            Frequency = newFrequency,
+            StartDue = newStartDue.Value,
+            EstimatedAmountDue = newEstimatedAmountDue?? 0.0,
+            PaymentUrl = newPaymentUrl
+        };
+
+        await BillTrackerRepository.AddBillAsync(task);
+
+        newName = string.Empty;
+        newDescription = string.Empty;
+        newReoccurring = false;
+        newFrequency = null;
+        newStartDue = null;
+        newEstimatedAmountDue = null;
+        newPaymentUrl = string.Empty;
+
+        await RefreshList();
+    }
+}

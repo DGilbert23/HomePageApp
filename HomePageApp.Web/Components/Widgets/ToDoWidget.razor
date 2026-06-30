@@ -1,7 +1,5 @@
 ﻿@using HomePageApp.Core.Interfaces
-@using HomePageApp.Core.Models
-@using HomePageApp.Infrastructure
-@using Microsoft.EntityFrameworkCore
+@using HomePageApp.Core.Models.ToDoList
 @inject IToDoRepository ToDoRepository
 
 
@@ -210,7 +208,7 @@
 
     private async Task RefreshList()
     {
-        toDoList = await ToDoRepository.GetAllTasksAsync();
+        toDoList = await ToDoRepository.GetCurrentTasksAsync();
     }
 
     private async Task ToggleTaskCompletion(ToDoItem item)
@@ -246,11 +244,18 @@
     // Triggered when clicking the Save (💾) button
     private async Task SaveTask(ToDoItem item)
     {
-        // Don't save if the user cleared out the title
-        if (string.IsNullOrWhiteSpace(editTitle)) return;
+        // Don't save if the user cleared out the title or we have the wrong ID somehow.
+        if (string.IsNullOrWhiteSpace(editTitle) || item.Id != editingTaskId)
+            return;
+        else
+        {
+            item.Title = editTitle;
+            item.Description = editDescription;
+            item.DueDate = editDueDate;
 
-        await ToDoRepository.SaveTaskAsync(item);
-        CancelEdit();
-        await RefreshList();
+            await ToDoRepository.SaveTaskAsync(item);
+            CancelEdit();
+            await RefreshList();
+        }
     }
 }

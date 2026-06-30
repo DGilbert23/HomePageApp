@@ -1,5 +1,5 @@
 ﻿using HomePageApp.Core.Interfaces;
-using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.WeatherApi;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
 
@@ -38,7 +38,7 @@ namespace HomePageApp.Infrastructure.Services.WeatherApi
                     TodayHours = rawData.Forecast.Forecastday.Where(fd => Convert.ToDateTime(fd.Date) == DateTime.Today || Convert.ToDateTime(fd.Date) == DateTime.Today.AddDays(1))
                                                                 .SelectMany(day => day.Hour)
                                                                 .Where(h => Convert.ToDateTime(h.Time) >= DateTime.Now)
-                                                                .Select(h => new Core.Models.Hour
+                                                                .Select(h => new Core.Models.WeatherApi.Hour
                                                                 {
                                                                     Time = TimeOnly.Parse(Convert.ToDateTime(h.Time).TimeOfDay.ToString()),
                                                                     ConditionIconUrl = h.Condition.Icon,                                                                    
