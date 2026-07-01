@@ -16,20 +16,28 @@ namespace HomePageApp.Infrastructure.Repositories
             _dbFactory = dbFactory;
         }
 
-        private DateTime? CalculateNextDue(string frequency, DateTime? lastDue, DateTime startDue)
+        private DateTime? CalculateNextDue(string frequency, DateTime? lastPaid, DateTime startDue)
         {
-            DateTime? nextDue = DateTime.Now;
+            DateTime? nextDue = startDue;
 
             switch (frequency.ToUpper())
             {
                 case "MONTHLY":
-                    if (lastDue != null)
-                        nextDue = lastDue.Value.AddMonths(1);
+                    if (lastPaid != null)
+                    {
+                        while (nextDue <= DateTime.Now)
+                        {
+                            nextDue = nextDue?.AddMonths(1);
+                        }
+                    }
                     else
+                    {
                         nextDue = startDue;
+                    }
+
                     break;
 
-                case null:
+                case "":
                     nextDue = null;
                     break;
 
@@ -45,7 +53,7 @@ namespace HomePageApp.Infrastructure.Repositories
         {
             using var context = _dbFactory.CreateDbContext();
 
-            var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", bill.NextDue, bill.StartDue);
+            var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue);
             bill.NextDue = nextDue;
 
             context.Bills.Add(bill);
@@ -67,13 +75,15 @@ namespace HomePageApp.Infrastructure.Repositories
         public async Task<List<Bill>> GetAllBillsAsync()
         {
             using var context = _dbFactory.CreateDbContext();
-            return await context.Bills.OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
+            return await context.Bills.OrderByDescending(b => b.NextDue)
+                                      .ThenBy(b => b.Name)
+                                      .ToListAsync<Bill>();
         }
 
-        public async Task<List<Bill>> GetUpcomingBillsAsync()
+        public async Task<List<Bill>> GetUpcomingBillsAsync(int daysOut)
         {
             using var context = _dbFactory.CreateDbContext();
-            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(3))
+            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut))
                                       .OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
         }
 
@@ -86,7 +96,7 @@ namespace HomePageApp.Infrastructure.Repositories
                 target.LastPaid = DateTime.Now;
                 if (target.Reoccurring)
                 {
-                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.NextDue, target.StartDue);
+                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaid, target.StartDue);
                     target.NextDue = nextDue;
                 }
 
@@ -106,7 +116,7 @@ namespace HomePageApp.Infrastructure.Repositories
                 currentBill.Reoccurring = updatedBill.Reoccurring;
                 currentBill.Frequency = updatedBill.Frequency;
                 currentBill.StartDue = updatedBill.StartDue;
-                currentBill.NextDue = updatedBill.NextDue;
+                currentBill.NextDue = CalculateNextDue(updatedBill.Frequency ?? "", updatedBill.LastPaid, updatedBill.StartDue);
                 currentBill.LastPaid = updatedBill.LastPaid;
                 currentBill.EstimatedAmountDue = updatedBill.EstimatedAmountDue;
                 currentBill.PaymentUrl = updatedBill.PaymentUrl;

@@ -5,11 +5,12 @@ namespace HomePageApp.Core.Interfaces
     public interface IBillTrackerRepository
     {
         Task<List<Bill>> GetAllBillsAsync();
-        Task<List<Bill>> GetUpcomingBillsAsync();
+        Task<List<Bill>> GetUpcomingBillsAsync(int daysOut);
 
         Task AddBillAsync(Bill bill);
         Task DeleteBillAsync(int id);
         Task SaveBillAsync(Bill bill);
         Task MarkPaidAsync(int id);
+        Task MarkSeenAsync(int id);
     }
 }
