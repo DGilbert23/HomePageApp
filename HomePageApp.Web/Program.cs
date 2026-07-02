@@ -22,7 +22,7 @@ builder.Services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-var path = Path.Combine(builder.Environment.WebRootPath, "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
+var path = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
 builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
 
 var app = builder.Build();
