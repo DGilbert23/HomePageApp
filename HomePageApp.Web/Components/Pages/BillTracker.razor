@@ -38,6 +38,10 @@
                     <input class="form-check-input" type="checkbox" id="compactRecur" title="Recurring?" @bind="newReoccurring" />
                     <label class="form-check-label text-secondary d-md-none d-lg-inline" for="compactRecur">Repeat</label>
                 </div>
+                <div class="form-check form-switch mb-0 flex-shrink-0">
+                    <input class="form-check-input" type="checkbox" id="compactAutoDraft" title="AutoDraft?" @bind="newAutoDraft" />
+                    <label class="form-check-label text-secondary d-md-none d-lg-inline" for="compactAutoDraft">AutoDraft</label>
+                </div>
                 <select class="form-select form-select-sm px-1 text-truncate" @bind="newFrequency" disabled="@(!newReoccurring)">
                     <option value="" selected>Frequency</option>
                     <option value="monthly">Monthly</option>
@@ -73,10 +77,11 @@
                         <th scope="col" style="width: 15%;">Description</th>
                         <th scope="col" style="width: 10%;">Start Due</th>
                         <th scope="col" style="width: 5%;">Reoccuring</th>
+                        <th scope="col" style="width: 5%;">AutoDraft</th>
+                        <th scope="col" style="width: 10%;">Frequency</th>
                         <th scope="col" style="width: 10%;">Last Paid</th>
                         <th scope="col" style="width: 10%;">Next Due</th>
-                        <th scope="col" style="width: 10%;">Amount</th>
-                        <th scope="col" style="width: 10%;">Frequency</th>
+                        <th scope="col" style="width: 5%;">Amount</th>
                         <th scope="col" style="width: 15%;">URL</th>
                         <th scope="col" style="width: 5%;"></th>
                     </tr>
@@ -132,27 +137,67 @@
                                     }
                                 </td>
 
-                                <td>
-                                    <div class="form-check form-switch mb-0 flex-shrink-0">
+                                <td class="text-center align-middle">
+                                    <div class="d-inline-flex justify-content-center align-items-center form-check form-switch mb-0 p-0">
                                         @if (isEditing)
                                         {
-                                            <input class="form-check-input" type="checkbox" title="Recurring?" @bind="editReoccurring" />
+
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Recurring?" @bind="editReoccurring" />
                                         }
                                         else
                                         {
-                                            <input class="form-check-input" type="checkbox" title="Recurring?" checked="@bill.Reoccurring" disabled="disabled" />
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Recurring?" checked="@bill.Reoccurring" disabled="disabled" />
                                         }
                                     </div>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <div class="d-inline-flex justify-content-center align-items-center form-check form-switch mb-0 p-0">
+                                        @if (isEditing)
+                                        {
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Auto-draft?" @bind="editAutoDraft" />
+                                        }
+                                        else
+                                        {
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Auto-draft?" checked="@bill.AutoDraft" disabled="disabled" />
+                                        }
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <select class="form-select form-select-sm px-1 text-truncate" @bind="editFrequency" disabled="@(!editReoccurring)">
+                                            <option value="" selected>Frequency</option>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="quarterly">Quarterly</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        if (bill.Reoccurring)
+                                        {
+                                            <span class="badge text-bg-info text-dark opacity-75 fw-semibold px-2 py-1 text-capitalize">
+                                                @bill.Frequency
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-light border text-secondary fw-normal px-2 py-1">
+                                                One-time
+                                            </span>
+                                        }
+                                    }
                                 </td>
 
                                 <td class="text-secondary font-monospace">
                                     @if (isEditing)
                                     {
-                                        <input type="date" class="form-control" title="Last Paid" @bind="editLastPaid" />
+                                        <input type="date" class="form-control" title="Last Paid" @bind="editLastPaidOrSeen" />
                                     }
                                     else
                                     {
-                                        @(bill.LastPaid?.ToString("d") ?? "")
+                                        @(bill.LastPaidOrSeen?.ToString("d") ?? "")
                                     }
                                 </td>
 
@@ -181,34 +226,6 @@
                                         else
                                         {
                                             <span class="text-muted small">—</span>
-                                        }
-                                    }
-
-                                
-                                </td>
-
-                                <td>
-                                    @if (isEditing)
-                                    {
-                                        <select class="form-select form-select-sm px-1 text-truncate" @bind="editFrequency" disabled="@(!editReoccurring)">
-                                            <option value="" selected>Frequency</option>
-                                            <option value="monthly">Monthly</option>
-                                            <option value="quarterly">Quarterly</option>
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        if (bill.Reoccurring)
-                                        {
-                                            <span class="badge text-bg-info text-dark opacity-75 fw-semibold px-2 py-1 text-capitalize">
-                                                @bill.Frequency
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge text-bg-light border text-secondary fw-normal px-2 py-1">
-                                                One-time
-                                            </span>
                                         }
                                     }
                                 </td>
@@ -249,7 +266,7 @@
                                                         @onclick="() => DeleteBill(bill.Id)" title="Delete Bill">
                                                     Delete
                                                 </button>
-                                            }                                            
+                                            }
                                         </div>
                                     </div>
                                 </td>
@@ -271,6 +288,7 @@
     private DateTime? newStartDue;
     private double? newEstimatedAmountDue = null;
     private string? newPaymentUrl = string.Empty;
+    private bool newAutoDraft = false;
 
     //variables used for editing
     private int? editingBillId = null;
@@ -278,11 +296,12 @@
     private string? editDescription = string.Empty;
     private DateTime editStartDue;
     private bool editReoccurring = false;
-    private DateTime? editLastPaid;
+    private DateTime? editLastPaidOrSeen;
     private DateTime? editNextDue;
     private string? editFrequency;
     private double? editEstimatedAmountDue = null;
     private string? editPaymentUrl = string.Empty;
+    private bool editAutoDraft = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -331,11 +350,12 @@
         editDescription = bill.Description;
         editStartDue = bill.StartDue;
         editReoccurring = bill.Reoccurring;
-        editLastPaid = bill.LastPaid;
+        editLastPaidOrSeen = bill.LastPaidOrSeen;
         editNextDue = bill.NextDue;
         editEstimatedAmountDue = bill.EstimatedAmountDue;
         editFrequency = bill.Frequency;
         editPaymentUrl = bill.PaymentUrl;
+        editAutoDraft = bill.AutoDraft;
     }
 
     // Triggered when clicking the Cancel (×) button during an edit
@@ -346,11 +366,12 @@
         editDescription = null;
         editStartDue = DateTime.MinValue;
         editReoccurring = false;
-        editLastPaid = null;
+        editLastPaidOrSeen = null;
         editNextDue = null;
         editEstimatedAmountDue = null;
         editFrequency = null;
         editPaymentUrl = null;
+        editAutoDraft = false;
     }
 
     // Triggered when clicking the Save (💾) button
@@ -366,11 +387,12 @@
             bill.Description = editDescription;
             bill.StartDue = editStartDue;
             bill.Reoccurring = editReoccurring;
-            bill.LastPaid = editLastPaid;
+            bill.LastPaidOrSeen = editLastPaidOrSeen;
             bill.NextDue = editNextDue;
             bill.EstimatedAmountDue = editEstimatedAmountDue;
             bill.Frequency = editFrequency;
             bill.PaymentUrl = editPaymentUrl;
+            bill.AutoDraft = editAutoDraft;
 
             await BillTrackerRepository.SaveBillAsync(bill);
             CancelEdit();

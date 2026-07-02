@@ -16,19 +16,19 @@ namespace HomePageApp.Infrastructure.Repositories
             _dbFactory = dbFactory;
         }
 
-        private DateTime? CalculateNextDue(string frequency, DateTime? lastPaid, DateTime startDue)
+        private DateTime? CalculateNextDue(string frequency, DateTime? lastMarked, DateTime startDue)
         {
             DateTime? nextDue = startDue;
 
             switch (frequency.ToUpper())
             {
                 case "MONTHLY":
-                    if (lastPaid != null)
+                    if (lastMarked != null)
                     {
-                        while (nextDue <= DateTime.Now)
+                        do
                         {
                             nextDue = nextDue?.AddMonths(1);
-                        }
+                        } while (nextDue <= DateTime.Now);
                     }
                     else
                     {
@@ -87,16 +87,17 @@ namespace HomePageApp.Infrastructure.Repositories
                                       .OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
         }
 
-        public async Task MarkPaidAsync(int id)
+        public async Task MarkPaidOrSeenAsync(int id)
         {
             using var context = _dbFactory.CreateDbContext();
-            var target = await context.Bills.FindAsync(id);
+            var target = await context.Bills.FindAsync(id);            
+
             if (target != null)
             {
-                target.LastPaid = DateTime.Now;
+                target.LastPaidOrSeen = DateTime.Now;
                 if (target.Reoccurring)
                 {
-                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaid, target.StartDue);
+                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaidOrSeen, target.StartDue);
                     target.NextDue = nextDue;
                 }
 
@@ -116,10 +117,11 @@ namespace HomePageApp.Infrastructure.Repositories
                 currentBill.Reoccurring = updatedBill.Reoccurring;
                 currentBill.Frequency = updatedBill.Frequency;
                 currentBill.StartDue = updatedBill.StartDue;
-                currentBill.NextDue = CalculateNextDue(updatedBill.Frequency ?? "", updatedBill.LastPaid, updatedBill.StartDue);
-                currentBill.LastPaid = updatedBill.LastPaid;
+                currentBill.NextDue = CalculateNextDue(updatedBill.Frequency ?? "", updatedBill.LastPaidOrSeen, updatedBill.StartDue);
+                currentBill.LastPaidOrSeen = updatedBill.LastPaidOrSeen;
                 currentBill.EstimatedAmountDue = updatedBill.EstimatedAmountDue;
                 currentBill.PaymentUrl = updatedBill.PaymentUrl;
+                currentBill.AutoDraft = updatedBill.AutoDraft;
 
                 await context.SaveChangesAsync();
             }

@@ -6,7 +6,6 @@
 
 <div class="card-body p-3">
     <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h5 class="m-0 text-primary fw-bold">Bill Tracker</h5>
         <span class="badge bg-primary rounded-pill">@billList.Count() bills due in next @_daysOutCheck days</span>
     </div>
 
@@ -14,9 +13,10 @@
         <table class="table table-hover text-center small">
             <thead class="table-light text-secondary">
                 <tr>
-                    <th scope="col" class="ps-3" style="width: 15%;">Bill Title</th>
+                    <th scope="col" class="ps-3" style="width: 10%;">Bill Title</th>
                     <th scope="col" style="width: 20%;">Next Due</th>
                     <th scope="col" style="width: 20%;">Est. Amount</th>
+                    <th scope="col" style="width: 5%;">AutoDraft</th>
                     <th scope="col" style="width: 15%;">Frequency</th>
                     <th scope="col" style="width: 20%;">Description</th>
                     <th scope="col" style="width: 10%;"></th>
@@ -26,7 +26,7 @@
                 @if (billList == null || !billList.Any())
                 {
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
+                        <td colspan="12" class="text-center text-muted py-4">
                             <div class="py-2">No upcoming bills found.</div>
                         </td>
                     </tr>
@@ -35,8 +35,12 @@
                 {
                     @foreach (var bill in billList)
                     {
-                        <tr class="align-middle @(bill.NextDue < DateTime.Now.AddDays(3) ? "table-danger" : bill.NextDue < DateTime.Now.AddDays(7) ? "table-warning" : "")">
-                            <!-- Bill Title & Optional Link -->
+                        var backgroundClass = bill.AutoDraft ? "" :
+                            bill.NextDue < DateTime.Now.AddDays(3) ? "table-danger" :
+                            bill.NextDue < DateTime.Now.AddDays(7) ? "table-warning" :
+                            "";
+
+                        <tr class="align-middle @(backgroundClass)">
                             <td class="fw-semibold ps-3">
                                 @if (!string.IsNullOrEmpty(bill.PaymentUrl))
                                 {
@@ -51,12 +55,10 @@
                                 }
                             </td>
 
-                            <!-- Next Due Date -->
                             <td class="text-secondary font-monospace">
                                 @bill.NextDue?.ToString("d")
                             </td>
 
-                            <!-- Estimated Amount -->
                             <td class="fw-medium text-dark">
                                 @if (bill.EstimatedAmountDue.HasValue)
                                 {
@@ -68,7 +70,13 @@
                                 }
                             </td>
 
-                            <!-- Recurring / Frequency Badge -->
+                            <td class="text-center align-middle">
+                                <div class="d-inline-flex justify-content-center align-items-center form-check form-switch mb-0 p-0">
+                                    <input class="form-check-input float-none m-0" type="checkbox" title="Auto-draft?" checked="@bill.AutoDraft" disabled="disabled" />
+                                </div>
+                            </td>
+
+
                             <td>
                                 @if (bill.Reoccurring)
                                 {
@@ -84,14 +92,13 @@
                                 }
                             </td>
 
-                            <!-- Description -->
                             <td class="text-muted text-truncate" style="max-width: 200px;" title="@bill.Description">
                                 @bill.Description
                             </td>
 
                             <td>
-                                <button class="btn btn-sm btn-primary w-100 fw-bold py-1" type="button" @onclick="() => MarkPaid(bill.Id)">
-                                    Mark Paid
+                                <button class="btn btn-sm btn-primary w-100 fw-bold py-1" type="button" @onclick="() => MarkPaidOrSeen(bill.Id)">
+                                    @(bill.AutoDraft ? "Mark Seen" : "Mark Paid")
                                 </button>
                             </td>
                         </tr>
@@ -124,9 +131,9 @@
         billList = await BillTrackerRepository.GetUpcomingBillsAsync(_daysOutCheck);
     }
 
-    private async Task MarkPaid(int id)
+    private async Task MarkPaidOrSeen(int id)
     {
-        await BillTrackerRepository.MarkPaidAsync(id);
+        await BillTrackerRepository.MarkPaidOrSeenAsync(id);
         await RefreshList();
     }
 }

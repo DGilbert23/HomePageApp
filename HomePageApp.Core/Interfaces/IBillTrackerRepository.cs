@@ -10,7 +10,6 @@ namespace HomePageApp.Core.Interfaces
         Task AddBillAsync(Bill bill);
         Task DeleteBillAsync(int id);
         Task SaveBillAsync(Bill bill);
-        Task MarkPaidAsync(int id);
-        Task MarkSeenAsync(int id);
+        Task MarkPaidOrSeenAsync(int id);
     }
 }
