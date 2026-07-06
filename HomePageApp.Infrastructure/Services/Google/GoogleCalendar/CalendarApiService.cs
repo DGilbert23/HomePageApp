@@ -28,9 +28,8 @@ public class CalendarApiService : ICalendarApiService
         _httpClient.BaseAddress = new Uri(configuration["GoogleCalendarApi:BaseUrl"] ?? string.Empty);
     }
 
-    public async Task<List<CalendarData>> GetUpcomingEventsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<CalendarData>> GetUpcomingEventsAsync(string accessToken, CancellationToken cancellationToken = default)
     {
-        var accessToken = await _googleAuthService.GetValidAccessTokenAsync();
         if (string.IsNullOrEmpty(accessToken)) return new List<CalendarData>();
 
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -42,7 +41,6 @@ public class CalendarApiService : ICalendarApiService
         try
         {
             var response = await _httpClient.GetFromJsonAsync<CalendarResponse>(requestUrl, cancellationToken);
-
             if (response?.Items == null) return new List<CalendarData>();
 
             List<CalendarData> calendarDatas = new List<CalendarData>();
@@ -60,7 +58,7 @@ public class CalendarApiService : ICalendarApiService
             }
             return calendarDatas;
         }
-        catch(HttpRequestException ex)
+        catch (HttpRequestException ex)
         {
             throw new HttpRequestException($"Google Calendar API failure (Status: {ex.StatusCode}). Detail: {ex.Message}", ex);
         }

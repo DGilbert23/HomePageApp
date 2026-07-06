@@ -1,8 +1,8 @@
 ﻿@page "/"
 @using HomePageApp.Web.Components.Widgets
 @using Microsoft.AspNetCore.Components.Authorization
-
-@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authentication
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Personal Dashboard</PageTitle>
 
@@ -10,13 +10,16 @@
     <div class="row g-4">
         <div class="col-md-6 col-lg-4">
             <div class="card shadow-sm p-3 mb-4 bg-light">
-                <WeatherWidget />
+                <WeatherWidget @rendermode="InteractiveServer" />
             </div>
 
             <div class="card shadow-sm p-3 bg-light mb-4">
                 <AuthorizeView>
                     <Authorized>
-                        <CalendarWidget />
+                        <!-- 2. Pass the token as a strict property string parameter -->
+                        <!-- 3. Force the calendar widget to only load inside the active stateful circuit -->
+                        <CalendarWidget AccessToken="@_googleAccessToken"
+                                        @rendermode="new InteractiveServerRenderMode(prerender: false)" />
                     </Authorized>
                     <NotAuthorized>
                         <div class="d-flex justify-content-center">
@@ -42,17 +45,31 @@
             </div>
 
             <div class="card shadow-sm p-3 bg-light">
-                <ScratchPadWidget />
+                <ScratchPadWidget @rendermode="InteractiveServer" />
             </div>
         </div>
 
         <div class="col-md-6 col-lg-8">
             <div class="card shadow-sm bg-light mb-4">
-                <BillTrackerWidget />
+                <BillTrackerWidget @rendermode="InteractiveServer" />
             </div>
             <div class="card shadow-sm bg-light">
-                <ToDoWidget />
+                <ToDoWidget @rendermode="InteractiveServer" />
             </div>
         </div>
     </div>
 </div>
+
+@code {
+    private string? _googleAccessToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = HttpContextAccessor.HttpContext;
+        if (context != null)
+        {
+            // Intercepts the access token payload during the initial HTTP request context pipeline
+            _googleAccessToken = await context.GetTokenAsync("access_token");
+        }
+    }
+}

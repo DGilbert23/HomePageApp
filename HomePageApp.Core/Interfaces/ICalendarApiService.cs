@@ -4,6 +4,6 @@ namespace HomePageApp.Core.Interfaces
 {
     public interface ICalendarApiService
     {
-        Task<List<CalendarData>> GetUpcomingEventsAsync(CancellationToken cancellationToken = default);
+        Task<List<CalendarData>> GetUpcomingEventsAsync(string accessToken, CancellationToken cancellationToken = default);
     }
 }

@@ -111,6 +111,9 @@
 </div>
 
 @code {
+    [Parameter]
+    public string? AccessToken { get; set; }
+
     private List<CalendarData>? CalendarData;
     private bool isScriptInitialized = false;
     private string? firstName;
@@ -136,13 +139,37 @@
 
         try
         {
-            CalendarData = await CalendarService.GetUpcomingEventsAsync();
+            CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
             CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
         }
         catch(Exception ex)
         {
             CalendarData = new List<CalendarData>();             
             _errorMessage = $"[Calendar Error] {ex.Message}";
+        }
+    }
+
+    // 2. FETCH DATA IN ONPARAMETERSSETASYNC INSTEAD OF ONINITIALIZEDASYNC
+    protected override async Task OnParametersSetAsync()
+    {
+        // Avoid executing duplicate calls if the data is already bound and static
+        if (!string.IsNullOrEmpty(AccessToken) && CalendarData == null)
+        {
+            try
+            {
+                // 3. PASSED ACCESS TOKEN DIRECTLY TO SERVICE ENDPOINT (Modify your interface signature if needed)
+                CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
+                CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
+            }
+            catch (Exception ex)
+            {
+                CalendarData = new List<CalendarData>();
+                _errorMessage = $"[Calendar Error] {ex.Message}";
+            }
+        }
+        else if (string.IsNullOrEmpty(AccessToken))
+        {
+            CalendarData = new List<CalendarData>();
         }
     }
 
