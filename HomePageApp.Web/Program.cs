@@ -25,6 +25,8 @@ builder.Services.AddHttpContextAccessor();
 var path = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
 builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
 
+builder.Services.AddInfrastructureServices(builder.Configuration);
+
 var app = builder.Build();
 
 
@@ -39,6 +41,7 @@ app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages:
 app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.UseAuthentication();
+app.UseForwardedHeaders();
 app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

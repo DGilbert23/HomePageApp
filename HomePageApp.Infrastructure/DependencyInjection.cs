@@ -3,6 +3,8 @@ using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Infrastructure.Services.WeatherApi;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +16,13 @@ public static class DependencyInjection
         {
             var baseUrl = configuration["WeatherApiSettings:BaseUrl"];
             client.BaseAddress = new Uri(baseUrl ?? "");
+        });
+
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
         });
 
         services.AddAuthentication(options =>
