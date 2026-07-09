@@ -37,6 +37,21 @@ namespace HomePageApp.Infrastructure.Repositories
 
                     break;
 
+                case "ANNUALLY":
+                    if (lastMarked != null)
+                    {
+                        do
+                        {
+                            nextDue = nextDue?.AddYears(1);
+                        } while (nextDue <= DateTime.Now);
+                    }
+                    else
+                    {
+                        nextDue = startDue;
+                    }
+
+                    break;
+
                 case "":
                     nextDue = null;
                     break;

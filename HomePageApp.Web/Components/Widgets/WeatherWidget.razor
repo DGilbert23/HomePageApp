@@ -25,13 +25,21 @@
 
             <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-3 bg-body-tertiary border rounded-4 p-3 shadow-sm">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-secondary-subtle text-secondary-emphasis fw-bold uppercase" style="font-size: 0.6rem; padding: 0.35em 0.5em; letter-spacing: 0.03em;">NOW</span>
-                    <span class="fs-1 fw-black text-dark lh-1">@weather.CurrentTempF°F</span>                    
+                    <span @onclick="GetData"
+                          role="button"
+                          class="badge bg-secondary-subtle text-secondary-emphasis Pe-auto fw-bold uppercase user-select-none"
+                          style="font-size: 0.6rem; padding: 0.35em 0.5em; letter-spacing: 0.03em; transition: opacity 0.15s ease;"
+                          onmouseover="this.style.opacity='0.75'"
+                          onmouseout="this.style.opacity='1'">
+                        NOW
+                    </span>
+                    <span class="fs-1 fw-black text-dark lh-1">@weather.CurrentTempF°F</span>
                 </div>
+
 
                 <div class="vr opacity-25 my-1 d-none d-sm-block" style="height: 35px;"></div>
                 <hr class="my-1 d-block d-sm-none opacity-25"> <!-- Mobile horizontal divider alternative -->
-                
+
                 <div class="d-flex align-items-center gap-2">
                     <img src="@weather.ConditionIconUrl" alt="@weather.ConditionText" style="width: 44px; height: 44px; object-fit: contain;">
                     <div class="lh-1">
@@ -128,11 +136,11 @@
 
 @code {
     private WeatherData? weather;
-    private bool isScriptInitialized = false;    
+    private bool isScriptInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
-        weather = await WeatherService.GetWidgetWeatherAsync("35803");
+        await GetData();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -142,5 +150,11 @@
             isScriptInitialized = true;
             await JSRuntime.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
         }
+    }
+
+    private async Task GetData()
+    {
+        weather = await WeatherService.GetWidgetWeatherAsync("35803");
+        StateHasChanged();
     }
 }

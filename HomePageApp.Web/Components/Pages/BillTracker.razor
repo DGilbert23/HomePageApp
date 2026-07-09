@@ -44,8 +44,9 @@
                 </div>
                 <select class="form-select form-select-sm px-1 text-truncate" @bind="newFrequency" disabled="@(!newReoccurring)">
                     <option value="" selected>Frequency</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="ANNUALLY">Annually</option>
+                    <option value="QUARTERLY">Quarterly</option>
                 </select>
             </div>
 
@@ -169,8 +170,9 @@
                                     {
                                         <select class="form-select form-select-sm px-1 text-truncate" @bind="editFrequency" disabled="@(!editReoccurring)">
                                             <option value="" selected>Frequency</option>
-                                            <option value="monthly">Monthly</option>
-                                            <option value="quarterly">Quarterly</option>
+                                            <option value="MONTHLY">Monthly</option>
+                                            <option value="ANNUALLY">Annually</option>
+                                            <option value="QUARTERLY">Quarterly</option>
                                         </select>
                                     }
                                     else

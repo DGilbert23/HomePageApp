@@ -5,7 +5,9 @@ using HomePageApp.Infrastructure.Repositories;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,11 @@ builder.Services.AddHttpContextAccessor();
 
 var path = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
 builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
+
+var keysDirectory = new DirectoryInfo(@"C:\ProgramData\HomePageApp\DataProtectionKeys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(keysDirectory)
+    .SetApplicationName("HomePageApp"); 
 
 var app = builder.Build();
 
@@ -48,7 +55,16 @@ app.MapRazorComponents<App>()
 
 app.MapGet("account/login", async (HttpContext httpContext) =>
 {
-    await httpContext.ChallengeAsync("Google", new AuthenticationProperties { RedirectUri = "/" });
+    var properties = new AuthenticationProperties
+    {
+        RedirectUri = "/",
+
+        IsPersistent = true,
+        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14),
+        AllowRefresh = true
+    };
+
+    await httpContext.ChallengeAsync("Google", properties);
 });
 
 // Add Logout Route Endpoint mapping
