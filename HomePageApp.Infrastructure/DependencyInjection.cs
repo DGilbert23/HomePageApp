@@ -1,8 +1,8 @@
 ﻿using HomePageApp.Core.Interfaces;
+using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Infrastructure.Services.WeatherApi;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +18,8 @@ public static class DependencyInjection
             client.BaseAddress = new Uri(baseUrl ?? "");
         });
 
+        services.AddScoped<IUserAccountService, UserAccountService>();
+
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -25,27 +27,26 @@ public static class DependencyInjection
             options.KnownProxies.Clear();
         });
 
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = "Google";
-        })
-        .AddCookie()
+        services
+        .AddAuthentication()
         .AddGoogle("Google", options =>
         {
             options.ClientId = configuration["Authentication:Google:ClientId"]!;
             options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
             options.SaveTokens = true;
             options.Scope.Add("https://www.googleapis.com/auth/calendar");
-            options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
-            {
-                OnRedirectToAuthorizationEndpoint = context =>
+
+            options.Events =
+                new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
                 {
-                    // Appends the offline access request flag to Google's sign-in landing URL
-                    context.Response.Redirect(context.RedirectUri + "&access_type=offline");
-                    return Task.CompletedTask;
-                }
-            };
+                    OnRedirectToAuthorizationEndpoint = context =>
+                    {
+                        context.Response.Redirect(
+                            context.RedirectUri + "&access_type=offline");
+
+                        return Task.CompletedTask;
+                    }
+                };
         });
 
         services.AddAuthorizationBuilder();
