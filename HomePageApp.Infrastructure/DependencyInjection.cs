@@ -27,28 +27,6 @@ public static class DependencyInjection
             options.KnownProxies.Clear();
         });
 
-        services
-        .AddAuthentication()
-        .AddGoogle("Google", options =>
-        {
-            options.ClientId = configuration["Authentication:Google:ClientId"]!;
-            options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
-            options.SaveTokens = true;
-            options.Scope.Add("https://www.googleapis.com/auth/calendar");
-
-            options.Events =
-                new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
-                {
-                    OnRedirectToAuthorizationEndpoint = context =>
-                    {
-                        context.Response.Redirect(
-                            context.RedirectUri + "&access_type=offline");
-
-                        return Task.CompletedTask;
-                    }
-                };
-        });
-
         services.AddAuthorizationBuilder();
 
         services.AddHttpClient<IGoogleAuthService, GoogleAuthService>(client =>

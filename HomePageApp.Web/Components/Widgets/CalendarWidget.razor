@@ -9,7 +9,7 @@
 <div class="container-fluid px-0">
     <div class="row g-4 align-items-start">
 
-        @if (!string.IsNullOrEmpty(firstName))
+        @if (!string.IsNullOrEmpty(FirstName))
         {
             <div class="col-xl-3 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-3 bg-light p-3 sticky-top" style="top: 20px;">
@@ -21,8 +21,8 @@
 
                         <!-- Combined onto a single row with smaller text size to prevent forced line breaks -->
                         <div class="text-dark small fw-medium mb-1">Welcome back,</div>
-                        <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@firstName @lastName">
-                            @firstName @lastName
+                        <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@FirstName @LastName">
+                            @FirstName @LastName
                         </h6>
 
                         <hr class="text-muted opacity-25 my-2" />
@@ -37,7 +37,7 @@
             </div>
         }
 
-        <div class="@(!string.IsNullOrEmpty(firstName) ? "col-xl-9 col-lg-8" : "col-12")">
+        <div class="@(!string.IsNullOrEmpty(FirstName) ? "col-xl-9 col-lg-8" : "col-12")">
             <div class="card border-0 shadow-sm rounded-3 p-4">
 
                 <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
@@ -111,32 +111,16 @@
 </div>
 
 @code {
-    [Parameter]
-    public string? AccessToken { get; set; }
+    [Parameter] public string? AccessToken { get; set; }
+    [Parameter] public string? FirstName { get; set; }
+    [Parameter] public string? LastName { get; set; }
 
     private List<CalendarData>? CalendarData;
     private bool isScriptInitialized = false;
-    private string? firstName;
-    private string? lastName;
     private string? _errorMessage;
-
-    [CascadingParameter]
-    private Task<AuthenticationState>? AuthStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        if (AuthStateTask != null)
-        {
-            var authState = await AuthStateTask;
-            var user = authState.User;
-
-            if (user.Identity?.IsAuthenticated == true)
-            {
-                firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? user.Identity.Name;
-                lastName = user.FindFirst(ClaimTypes.Surname)?.Value;
-            }
-        }
-
         try
         {
             CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
@@ -149,15 +133,12 @@
         }
     }
 
-    // 2. FETCH DATA IN ONPARAMETERSSETASYNC INSTEAD OF ONINITIALIZEDASYNC
     protected override async Task OnParametersSetAsync()
     {
-        // Avoid executing duplicate calls if the data is already bound and static
         if (!string.IsNullOrEmpty(AccessToken) && CalendarData == null)
         {
             try
             {
-                // 3. PASSED ACCESS TOKEN DIRECTLY TO SERVICE ENDPOINT (Modify your interface signature if needed)
                 CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
                 CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
             }

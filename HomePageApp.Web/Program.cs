@@ -53,6 +53,34 @@ builder.Services
         });
     });
 
+builder.Services
+    .AddAuthentication()
+    .AddCookie("GoogleAuthCookie", options =>
+    {
+        options.Cookie.Name = "HomePageApp.Google";
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
+        options.SlidingExpiration = true;
+    })
+    .AddGoogle("Google", options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.SaveTokens = true;
+        options.Scope.Add("https://www.googleapis.com/auth/calendar");
+        options.SignInScheme = "GoogleAuthCookie";
+        options.Events =
+            new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+            {
+                OnRedirectToAuthorizationEndpoint = context =>
+                {
+                    context.Response.Redirect(
+                        context.RedirectUri + "&access_type=offline&prompt=consent");
+
+                    return Task.CompletedTask;
+                }
+            };
+    });
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IToDoRepository, EfToDoRepository>();
@@ -140,7 +168,7 @@ app.MapGet("calendarwidget/account/login", async (HttpContext httpContext) =>
 
 app.MapGet("calendarwidget/account/logout", async (HttpContext httpContext) =>
 {
-    await httpContext.SignOutAsync("GoogleSecondaryCookie");
+    await httpContext.SignOutAsync("GoogleAuthCookie");
     httpContext.Response.Redirect("/");
 });
 #endregion
@@ -149,7 +177,7 @@ app.MapGet("calendarwidget/account/logout", async (HttpContext httpContext) =>
 app.MapGet("api/debug-tokens", async (HttpContext httpContext) =>
 {
     // Force AuthenticateAsync against the widget scheme to extract Google tokens safely
-    var authResult = await httpContext.AuthenticateAsync("GoogleSecondaryCookie");
+    var authResult = await httpContext.AuthenticateAsync("GoogleAuthCookie");
 
     var accessToken = authResult.Properties?.GetTokenValue("access_token");
     var refreshToken = authResult.Properties?.GetTokenValue("refresh_token");
