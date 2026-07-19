@@ -1,21 +1,76 @@
 ﻿@page "/login"
+@using Microsoft.AspNetCore.Authorization;
+@attribute [AllowAnonymous]
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
-<h3>Login</h3>
+<PageTitle>Login</PageTitle>
 
-<form method="post" action="/account/login">
+<div class="login-page d-flex justify-content-center align-items-center">
+    <div class="card shadow border-0 rounded-4 login-card">
+        <div class="card-body p-4 p-md-5">
 
-    <div>
-        <label>Email</label>
-        <input name="Email" type="email" />
+            <h1 class="text-center mb-1">Welcome Back</h1>
+
+            <p class="text-center text-muted mb-4">
+                Sign in to continue.
+            </p>
+
+            <form method="post" action="/account/login">
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        Email
+                    </label>
+
+                    <input id="email"
+                           name="Email"
+                           type="email"
+                           autocomplete="email"
+                           class="form-control"
+                           required />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        Password
+                    </label>
+
+                    <input id="password"
+                           name="Password"
+                           type="password"
+                           autocomplete="current-password"
+                           class="form-control"
+                           required />
+                </div>
+
+                <button class="btn btn-primary w-100" type="submit">
+                    Sign In
+                </button>
+
+                @if (LoginFailed)
+                {
+                    <div class="alert alert-danger">
+                        Invalid email or password.
+                    </div>
+                }
+
+                <a class="btn btn-outline-primary w-100 mt-3" href="/register">
+                    Register
+                </a>
+            </form>
+        </div>
     </div>
+</div>
 
-    <div>
-        <label>Password</label>
-        <input name="Password" type="password" />
-    </div>
+@code {
+    private bool LoginFailed;
+    private IJSObjectReference? module;
 
-    <button type="submit">
-        Login
-    </button>
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(NavigationManager.Uri);
 
-</form>
+        LoginFailed = uri.Query.Contains("error=invalid");
+    }
+}

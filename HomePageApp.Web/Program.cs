@@ -5,6 +5,7 @@ using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -81,7 +82,13 @@ builder.Services
             };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .Build();
+}
+);
 
 builder.Services.AddScoped<IToDoRepository, EfToDoRepository>();
 builder.Services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
@@ -113,7 +120,8 @@ app.UseForwardedHeaders();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
-app.MapStaticAssets();
+app.MapStaticAssets()
+    .AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
@@ -121,33 +129,39 @@ app.MapRazorComponents<App>()
 
 app.MapPost("/account/login", async (
     HttpContext context,
+    UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager) =>
 {
     var form = await context.Request.ReadFormAsync();
 
     var email = form["Email"].ToString();
     var password = form["Password"].ToString();
+    
+    //Treat bad username (no user found) the same failed authentication.
+    var user = await userManager.FindByEmailAsync(email);
+    if(user == null)
+        return Results.Redirect("/login?error=invalid");
 
     var result = await signInManager.PasswordSignInAsync(
-        email,
+        user,
         password,
         isPersistent: true,
         lockoutOnFailure: false);
 
     if (result.Succeeded)
-    {
         return Results.Redirect("/");
-    }
-
-    return Results.Redirect("/login?error=true");
-});
+    else
+        return Results.Redirect("/login?error=invalid");
+})
+    .AllowAnonymous();
 
 app.MapPost("/account/logout", async (HttpContext context) =>
 {
     await context.SignOutAsync(IdentityConstants.ApplicationScheme);
 
     return Results.Redirect("/login");
-});
+})
+    .AllowAnonymous();
 
 #endregion
 
