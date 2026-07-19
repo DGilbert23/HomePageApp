@@ -1,34 +1,37 @@
 ﻿using HomePageApp.Core.Interfaces;
 using HomePageApp.Core.Models.ToDoList;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HomePageApp.Infrastructure.Repositories
 {
     public class EfToDoRepository : IToDoRepository
     {
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
+        private readonly IUserAccountService _userAccountService;
 
-        public EfToDoRepository(IDbContextFactory<AppDbContext> dbFactory)
+        public EfToDoRepository(IDbContextFactory<AppDbContext> dbFactory, IUserAccountService userAccountService)
         {
             _dbFactory = dbFactory;
+            _userAccountService = userAccountService;
         }
 
         public async Task<List<ToDoItem>> GetAllTasksAsync()
         {
+            var userId = await GetCurrentUserId();
+
             using var context = _dbFactory.CreateDbContext();
-            return await context.ToDoItems.OrderBy(t => t.CompletedDate != null)
+            return await context.ToDoItems.Where(t => t.UserId == userId)
+                                          .OrderBy(t => t.CompletedDate != null)
                                           .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                                           .ThenByDescending(t => t.CreatedDate).ToListAsync<ToDoItem>();
         }
 
         public async Task<List<ToDoItem>> GetCurrentTasksAsync()
         {
+            var userId = await GetCurrentUserId();
+
             using var context = _dbFactory.CreateDbContext();
-            return await context.ToDoItems.Where(t => t.CompletedDate > DateTime.Now.AddDays(-3) || t.CompletedDate == null)
+            return await context.ToDoItems.Where(t => t.UserId == userId && t.CompletedDate > DateTime.Now.AddDays(-3) || t.CompletedDate == null)
                                           .OrderBy(t => t.CompletedDate != null)
                                           .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                                           .ThenByDescending(t => t.CreatedDate).ToListAsync<ToDoItem>();
@@ -36,6 +39,8 @@ namespace HomePageApp.Infrastructure.Repositories
 
         public async Task AddTaskAsync(ToDoItem task)
         {
+            task.UserId = await GetCurrentUserId();
+
             using var context = _dbFactory.CreateDbContext();
             context.ToDoItems.Add(task);
             await context.SaveChangesAsync();
@@ -48,13 +53,25 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
+                var userId = await GetCurrentUserId();
+                if (target.UserId != userId)
+                    throw new InvalidOperationException("Authenticated UserId does not match record to save");
+
                 context.ToDoItems.Remove(target);
                 await context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new InvalidOperationException("Unable to find ToDoItems record to delete.");
             }
         }
 
         public async Task SaveTaskAsync(ToDoItem updatedItem)
         {
+            var userId = await GetCurrentUserId();
+            if (updatedItem.UserId != userId)
+                throw new InvalidOperationException("Authenticated UserId does not match record to save");
+
             using var context = _dbFactory.CreateDbContext();
             var currentItem = await context.ToDoItems.FindAsync(updatedItem.Id);
 
@@ -70,6 +87,10 @@ namespace HomePageApp.Infrastructure.Repositories
 
         public async Task ToggleTaskCompletionAsync(ToDoItem item)
         {
+            var userId = await GetCurrentUserId();
+            if (item.UserId != userId)
+                throw new InvalidOperationException("Authenticated UserId does not match record to save");
+
             using var context = _dbFactory.CreateDbContext();
             var currentItem = await context.ToDoItems.FindAsync(item.Id);
 
@@ -82,6 +103,11 @@ namespace HomePageApp.Infrastructure.Repositories
 
                 await context.SaveChangesAsync();
             }
+        }
+
+        private async Task<int> GetCurrentUserId()
+        {
+            return await _userAccountService.GetCurrentUserProfileId();
         }
     }
 }

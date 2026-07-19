@@ -21,5 +21,7 @@ namespace HomePageApp.Core.Models.ToDoList
         [Display(Name = "Completed Date")]
         [DataType(DataType.Date)]
         public DateTime? CompletedDate { get; set; }
+
+        public int UserId {  get; set; }
     }
 }

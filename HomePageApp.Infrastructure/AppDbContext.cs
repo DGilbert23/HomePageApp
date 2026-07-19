@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Models.BillTracker;
+﻿using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.BillTracker;
 using HomePageApp.Core.Models.ToDoList;
 using HomePageApp.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ namespace HomePageApp.Infrastructure
 
         public DbSet<ToDoItem> ToDoItems { get; set; }
         public DbSet<Bill> Bills { get; set; }
+        public DbSet<UserProfile> UserProfiles {  get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
