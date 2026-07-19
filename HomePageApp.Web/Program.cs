@@ -136,10 +136,10 @@ app.MapPost("/account/login", async (
 
     var email = form["Email"].ToString();
     var password = form["Password"].ToString();
-    
+
     //Treat bad username (no user found) the same failed authentication.
     var user = await userManager.FindByEmailAsync(email);
-    if(user == null)
+    if (user == null)
         return Results.Redirect("/login?error=invalid");
 
     var result = await signInManager.PasswordSignInAsync(

@@ -31,7 +31,7 @@ namespace HomePageApp.Infrastructure.Repositories
             var userId = await GetCurrentUserId();
 
             using var context = _dbFactory.CreateDbContext();
-            return await context.ToDoItems.Where(t => t.UserId == userId && t.CompletedDate > DateTime.Now.AddDays(-3) || t.CompletedDate == null)
+            return await context.ToDoItems.Where(t => t.UserId == userId && (t.CompletedDate > DateTime.Now.AddDays(-3) || t.CompletedDate == null))
                                           .OrderBy(t => t.CompletedDate != null)
                                           .ThenBy(t => t.DueDate ?? DateTime.MaxValue)
                                           .ThenByDescending(t => t.CreatedDate).ToListAsync<ToDoItem>();
