@@ -40,11 +40,13 @@ namespace HomePageApp.Infrastructure.FileSystem
 
         private async Task<string> GetScratchPadPathAsync()
         {
+            var userId = await _userAccountService.GetCurrentUserProfileId();
+
             var path = Path.Combine(
                 _environment.ContentRootPath,
                 "wwwroot",
                 "uploads",
-                (await _userAccountService.GetCurrentUserProfileId()).ToString(),
+                userId.ToString(),
                 _configuration["StorageSettings:ScratchPadPath"] ?? "");
 
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);

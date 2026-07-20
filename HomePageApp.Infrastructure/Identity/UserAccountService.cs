@@ -1,6 +1,7 @@
 ﻿using HomePageApp.Core.Interfaces;
 using HomePageApp.Core.Models;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -12,12 +13,18 @@ public class UserAccountService : IUserAccountService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserAccountService(UserManager<ApplicationUser> userManager, IDbContextFactory<AppDbContext> dbFactory, AuthenticationStateProvider authenticationStateProvider)
+    public UserAccountService(
+        UserManager<ApplicationUser> userManager,
+        IDbContextFactory<AppDbContext> dbFactory,
+        AuthenticationStateProvider authenticationStateProvider,
+        IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _dbFactory = dbFactory;
         _authenticationStateProvider = authenticationStateProvider;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<UserProfile> CreateUserAsync(string email, string password, string firstName, string lastName)
@@ -86,11 +93,106 @@ public class UserAccountService : IUserAccountService
         return Guid.Parse(id);
     }
 
+    public Guid GetCurrentUserIdFromHttpContext()
+    {
+        var id = _httpContextAccessor.HttpContext?
+            .User
+            .FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (id == null)
+            throw new InvalidOperationException("No authenticated user found");
+
+        return Guid.Parse(id);
+    }
+
     public async Task<UserProfile?> GetUserProfile(Guid identityId)
     {
         using var context = _dbFactory.CreateDbContext();
         return await context.UserProfiles.Where(p => p.IdentityUserId == identityId).FirstOrDefaultAsync();
     }
 
-    
+    public async Task SaveGoogleConnectionAsync(
+    GoogleConnectionInfo googleConnection)
+    {
+        var userId = GetCurrentUserIdFromHttpContext();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            throw new InvalidOperationException(
+                "Authenticated user not found.");
+        }
+
+        user.GoogleRefreshToken = googleConnection.EncryptedRefreshToken;
+        user.GoogleUserId = googleConnection.GoogleUserId;
+        user.GoogleEmail = googleConnection.GoogleEmail;
+        user.GoogleFirstName = googleConnection.GoogleFirstName;
+        user.GoogleLastName = googleConnection.GoogleLastName;
+        user.GoogleConnectedUtc = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(
+                string.Join(", ",
+                    result.Errors.Select(e => e.Description)));
+        }
+    }
+
+    public async Task<GoogleConnectionInfo?> GetGoogleConnectionAsync()
+    {
+        var userId = await GetCurrentUserId();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(user.GoogleRefreshToken))
+        {
+            return null;
+        }
+
+        return new GoogleConnectionInfo
+        {
+            EncryptedRefreshToken = user.GoogleRefreshToken,
+            GoogleUserId = user.GoogleUserId ?? "",
+            GoogleEmail = user.GoogleEmail ?? "",
+            GoogleFirstName = user.GoogleFirstName,
+            GoogleLastName = user.GoogleLastName
+        };
+    }
+
+    public async Task RemoveGoogleConnectionAsync()
+    {
+        var userId = await GetCurrentUserId();
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user == null)
+        {
+            throw new InvalidOperationException(
+                "Authenticated user not found.");
+        }
+
+        user.GoogleRefreshToken = null;
+        user.GoogleUserId = null;
+        user.GoogleEmail = null;
+        user.GoogleFirstName = null;
+        user.GoogleLastName = null;
+        user.GoogleConnectedUtc = null;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(
+                string.Join(", ",
+                    result.Errors.Select(e => e.Description)));
+        }
+    }
 }

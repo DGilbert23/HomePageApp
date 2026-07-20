@@ -13,4 +13,10 @@ public interface IUserAccountService
     Task<int> GetCurrentUserProfileId();
 
     Task<UserProfile?> GetUserProfile(Guid identityId);
+
+    Task SaveGoogleConnectionAsync(GoogleConnectionInfo googleConnection);
+
+    Task<GoogleConnectionInfo?> GetGoogleConnectionAsync();
+
+    Task RemoveGoogleConnectionAsync();
 }

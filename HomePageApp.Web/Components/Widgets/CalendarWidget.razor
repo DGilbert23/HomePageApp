@@ -1,7 +1,5 @@
-﻿@using System.Security.Claims;
-@using HomePageApp.Core.Interfaces
+﻿@using HomePageApp.Core.Interfaces
 @using HomePageApp.Core.Models.CalendarApi
-@using Microsoft.AspNetCore.Components.Authorization
 @inject ICalendarApiService CalendarService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -20,7 +18,7 @@
                         </span>
 
                         <!-- Combined onto a single row with smaller text size to prevent forced line breaks -->
-                        <div class="text-dark small fw-medium mb-1">Welcome back,</div>
+                        <div class="text-dark small fw-medium mb-1">Calendar Connected,</div>
                         <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@FirstName @LastName">
                             @FirstName @LastName
                         </h6>
@@ -28,9 +26,9 @@
                         <hr class="text-muted opacity-25 my-2" />
 
                         <!-- Made button more compact with smaller padding (py-1) and smaller font (small) -->
-                        <button class="btn btn-outline-danger w-100 rounded-3 py-1 mt-1 d-flex align-items-center justify-content-center gap-2 btn-sm fw-semibold" @onclick="HandleSignOut">
-                            <span class="material-symbols-outlined fs-6">logout</span>
-                            <span>Sign Out</span>
+                        <button class="btn btn-outline-danger w-100 rounded-3 py-1 mt-1 d-flex align-items-center justify-content-center gap-2 btn-sm fw-semibold" @onclick="HandleDisconnect">
+                            <span class="material-symbols-outlined fs-6">link_off</span>
+                            <span>Disconnect</span>
                         </button>
                     </div>
                 </div>
@@ -111,60 +109,65 @@
 </div>
 
 @code {
-    [Parameter] public string? AccessToken { get; set; }
     [Parameter] public string? FirstName { get; set; }
     [Parameter] public string? LastName { get; set; }
 
     private List<CalendarData>? CalendarData;
-    private bool isScriptInitialized = false;
     private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
+            CalendarData = await CalendarService.GetUpcomingEventsAsync();
             CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            CalendarData = new List<CalendarData>();             
+            CalendarData = new List<CalendarData>();
             _errorMessage = $"[Calendar Error] {ex.Message}";
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(AccessToken) && CalendarData == null)
+        if (CalendarData != null)
+            return;
+
+        try
         {
-            try
-            {
-                CalendarData = await CalendarService.GetUpcomingEventsAsync(AccessToken);
-                CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
-            }
-            catch (Exception ex)
-            {
-                CalendarData = new List<CalendarData>();
-                _errorMessage = $"[Calendar Error] {ex.Message}";
-            }
+            CalendarData = await CalendarService.GetUpcomingEventsAsync();
+            CalendarData = CalendarData
+                .OrderBy(c => c.StartTime)
+                .ToList();
         }
-        else if (string.IsNullOrEmpty(AccessToken))
+        catch (Exception ex)
         {
             CalendarData = new List<CalendarData>();
+            _errorMessage = $"[Calendar Error] {ex.Message}";
         }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(firstRender && !string.IsNullOrEmpty(_errorMessage))
+        if (firstRender && !string.IsNullOrEmpty(_errorMessage))
         {
             await JSRuntime.InvokeVoidAsync("console.error", _errorMessage);
             _errorMessage = null;
         }
     }
 
-    private void HandleSignOut()
+    private async Task HandleDisconnect()
     {
-        Navigation.NavigateTo("calendarwidget/account/logout", forceLoad: true);
+        var confirmed = await JSRuntime.InvokeAsync<bool>(
+            "confirm",
+            "Disconnect Google Calendar? You will need to reconnect before calendar events are shown again.");
+
+        if (confirmed)
+        {
+            Navigation.NavigateTo(
+                "calendarwidget/account/logout",
+                forceLoad: true);
+        }
     }
 }

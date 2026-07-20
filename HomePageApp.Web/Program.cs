@@ -1,8 +1,10 @@
 using HomePageApp.Core.Interfaces;
+using HomePageApp.Core.Models;
 using HomePageApp.Infrastructure;
 using HomePageApp.Infrastructure.FileSystem;
 using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
+using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -63,8 +65,8 @@ builder.Services
     .AddCookie("GoogleAuthCookie", options =>
     {
         options.Cookie.Name = "HomePageApp.Google";
-        options.ExpireTimeSpan = TimeSpan.FromDays(14);
-        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+        options.SlidingExpiration = false;
     })
     .AddGoogle("Google", options =>
     {
@@ -100,6 +102,7 @@ builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<GoogleTokenProtector>();
 
 builder.Services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
 
@@ -171,50 +174,79 @@ app.MapGet("calendarwidget/account/login", async (HttpContext httpContext) =>
 {
     var properties = new AuthenticationProperties
     {
-        RedirectUri = "/",
-
-        IsPersistent = true,
-        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14),
-        AllowRefresh = true
+        RedirectUri = "/calendarwidget/account/callback"
     };
 
     await httpContext.ChallengeAsync("Google", properties);
 });
 
-app.MapGet("calendarwidget/account/logout", async (HttpContext httpContext) =>
+app.MapGet("calendarwidget/account/logout", async (
+    HttpContext httpContext,
+    IUserAccountService userAccountService) =>
 {
+    await userAccountService.RemoveGoogleConnectionAsync();
+
     await httpContext.SignOutAsync("GoogleAuthCookie");
-    httpContext.Response.Redirect("/");
+
+    return Results.Redirect("/");
 });
-#endregion
 
-#region Endpoint for auth token debugging
-app.MapGet("api/debug-tokens", async (HttpContext httpContext) =>
+app.MapGet("calendarwidget/account/callback", async (
+    HttpContext httpContext,
+    IUserAccountService userAccountService,
+    GoogleTokenProtector tokenProtector) =>
 {
-    // Force AuthenticateAsync against the widget scheme to extract Google tokens safely
-    var authResult = await httpContext.AuthenticateAsync("GoogleAuthCookie");
+    var result = await httpContext.AuthenticateAsync("GoogleAuthCookie");
 
-    var accessToken = authResult.Properties?.GetTokenValue("access_token");
-    var refreshToken = authResult.Properties?.GetTokenValue("refresh_token");
-    var expiresAt = authResult.Properties?.GetTokenValue("expires_at");
-
-    return Results.Ok(new
+    if (!result.Succeeded)
     {
-        IsWidgetUserAuthenticated = authResult.Succeeded,
-        HasAccessToken = !string.IsNullOrEmpty(accessToken),
-        AccessTokenPreview = accessToken != null && accessToken.Length > 10
-            ? accessToken.Substring(0, 10) + "..."
-            : accessToken,
+        return Results.Redirect("/?googleError=authenticationFailed");
+    }
 
-        HasRefreshToken = !string.IsNullOrEmpty(refreshToken),
-        RefreshTokenPreview = refreshToken != null && refreshToken.Length > 10
-            ? refreshToken.Substring(0, 10) + "..."
-            : "MISSING",
+    var refreshToken = result.Properties?
+        .GetTokenValue("refresh_token");
 
-        ExpiresAtRawString = expiresAt,
-        ParsedUtcTime = DateTimeOffset.TryParse(expiresAt, out var dt) ? dt.ToString("u") : "Failed to parse",
-        CurrentUtcTime = DateTimeOffset.UtcNow.ToString("u")
-    });
+    if (string.IsNullOrEmpty(refreshToken))
+    {
+        return Results.Redirect("/?googleError=noRefreshToken");
+    }
+
+
+    var encryptedRefreshToken =
+        tokenProtector.Protect(refreshToken);
+
+
+    var googleUserId =
+        result.Principal?.FindFirst("sub")?.Value ?? "";
+
+    var googleEmail =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+
+    var googleFirstName =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.GivenName)?.Value;
+
+    var googleLastName =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.Surname)?.Value;
+
+
+    await userAccountService.SaveGoogleConnectionAsync(
+        new GoogleConnectionInfo
+        {
+            EncryptedRefreshToken = encryptedRefreshToken,
+            GoogleUserId = googleUserId,
+            GoogleEmail = googleEmail,
+            GoogleFirstName = googleFirstName,
+            GoogleLastName = googleLastName
+        });
+
+
+    await httpContext.SignOutAsync("GoogleAuthCookie");
+
+
+    return Results.Redirect("/");
 });
 #endregion
 

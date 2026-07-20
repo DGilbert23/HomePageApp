@@ -1,8 +1,7 @@
 ﻿@page "/"
 @using HomePageApp.Web.Components.Widgets
-@using Microsoft.AspNetCore.Authentication
-@using System.Security.Claims;
-@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using HomePageApp.Core.Interfaces
+@inject IUserAccountService UserAccountService
 
 <PageTitle>Personal Dashboard</PageTitle>
 
@@ -16,8 +15,7 @@
             <div class="card shadow-sm p-3 bg-light mb-4">
                 @if (_googleAuthenticated)
                 {
-                    <CalendarWidget AccessToken="@_googleAccessToken"
-                                    FirstName="@_googleFirstName"
+                    <CalendarWidget FirstName="@_googleFirstName"
                                     LastName="@_googleLastName"
                                     @rendermode="new InteractiveServerRenderMode(prerender: false)" />
                 }
@@ -62,26 +60,22 @@
 
 @code {
     private bool _googleAuthenticated;
-    private string? _googleAccessToken;
     private string? _googleFirstName;
     private string? _googleLastName;
 
     protected override async Task OnInitializedAsync()
     {
-        var context = HttpContextAccessor.HttpContext;
+        var googleConnection = await UserAccountService.GetGoogleConnectionAsync();
 
-        if (context is null)
-            return;
-
-        var result = await context.AuthenticateAsync("GoogleAuthCookie");
-
-        _googleAuthenticated = result.Succeeded;
-
-        if (_googleAuthenticated)
+        if (googleConnection == null)
         {
-            _googleAccessToken = result.Properties?.GetTokenValue("access_token");
-            _googleFirstName = result.Principal?.FindFirst(ClaimTypes.GivenName)?.Value;
-            _googleLastName = result.Principal?.FindFirst(ClaimTypes.Surname)?.Value;
+            _googleAuthenticated = false;
+            return;
         }
+
+        _googleAuthenticated = true;
+
+        _googleFirstName = googleConnection.GoogleFirstName;
+        _googleLastName = googleConnection.GoogleLastName;
     }
 }

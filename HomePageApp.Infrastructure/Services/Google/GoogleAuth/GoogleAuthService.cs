@@ -1,4 +1,5 @@
 ﻿using HomePageApp.Core.Interfaces;
+using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -13,69 +14,46 @@ namespace HomePageApp.Infrastructure.Services.Google.GoogleAuth
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
+        private readonly IUserAccountService _userAccountService;
+        private readonly GoogleTokenProtector _tokenProtector;
 
         public GoogleAuthService(
             HttpClient httpClient,
             IHttpContextAccessor httpContextAccessor,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUserAccountService userAccountService,
+            GoogleTokenProtector tokenProtector)
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
+            _userAccountService = userAccountService;
+            _tokenProtector = tokenProtector;
         }
 
         public async Task<string?> GetValidAccessTokenAsync()
         {
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null) return null;
+            var googleConnection =
+                await _userAccountService.GetGoogleConnectionAsync();
 
-            var expiresAtString = await httpContext.GetTokenAsync("expires_at");
-            var accessToken = await httpContext.GetTokenAsync("access_token");
+            if (googleConnection == null)
+                return null;
 
-            if (string.IsNullOrEmpty(expiresAtString) || string.IsNullOrEmpty(accessToken))
-            {
-                return accessToken;
-            }
 
-            if (DateTimeOffset.TryParse(expiresAtString, out var expiresAt))
-            {
-                // Refresh if token is already expired or expiring within 5 minutes
-                if (expiresAt < DateTimeOffset.UtcNow.AddMinutes(5))
-                {
-                    var refreshToken = await httpContext.GetTokenAsync("refresh_token");
-                    if (string.IsNullOrEmpty(refreshToken)) return accessToken;
+            var refreshToken =
+                _tokenProtector.Unprotect(
+                    googleConnection.EncryptedRefreshToken);
 
-                    var newTokens = await RequestNewTokenFromGoogleAsync(refreshToken);
-                    if (newTokens != null)
-                    {
-                        var result = await httpContext.AuthenticateAsync();
-                        if (result.Succeeded)
-                        {
-                            result.Properties.UpdateTokenValue("access_token", newTokens.AccessToken);
 
-                            if (!string.IsNullOrEmpty(newTokens.RefreshToken))
-                            {
-                                result.Properties.UpdateTokenValue("refresh_token", newTokens.RefreshToken);
-                            }
+            var newTokens =
+                await RequestNewTokenFromGoogleAsync(refreshToken);
 
-                            var newExpiration = DateTimeOffset.UtcNow.AddSeconds(newTokens.ExpiresIn);
-                            result.Properties.UpdateTokenValue("expires_at", newExpiration.ToString("o"));
 
-                            // Write the updated tokens back to the user's encrypted auth cookie
-                            await httpContext.SignInAsync(result.Principal, result.Properties);
-                            return newTokens.AccessToken;
-                        }
-                    }
-                    else
-                    {
-                        await httpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
-                        httpContext.Response.Redirect("/account/login");
-                        return null;
-                    }
-                }
-            }
+            if (newTokens == null)
+                return null;
 
-            return accessToken;
+
+            return newTokens.AccessToken;
         }
 
         private async Task<GoogleTokenResponse?> RequestNewTokenFromGoogleAsync(string refreshToken)
@@ -90,7 +68,7 @@ namespace HomePageApp.Infrastructure.Services.Google.GoogleAuth
             };
 
             var requestContent = new FormUrlEncodedContent(tokenRequestParams);
-            var response = await client.PostAsync("https://googleapis.com", requestContent);
+            var response = await client.PostAsync("https://oauth2.googleapis.com/token", requestContent);
 
             if (!response.IsSuccessStatusCode) return null;
 
