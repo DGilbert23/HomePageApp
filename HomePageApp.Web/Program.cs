@@ -101,8 +101,7 @@ builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-var path = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
-builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
+builder.Services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
 
 var keysDirectory = new DirectoryInfo(@"C:\ProgramData\HomePageApp\DataProtectionKeys");
 builder.Services.AddDataProtection()
@@ -111,11 +110,9 @@ builder.Services.AddDataProtection()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
