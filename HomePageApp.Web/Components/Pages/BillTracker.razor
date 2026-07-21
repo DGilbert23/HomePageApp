@@ -60,12 +60,12 @@
 
         <!-- Optional Fields sub-row -->
         <div class="row g-2 mt-1">
-            <div class="col-md-5 col-12">
-                <input type="url" class="form-control form-control-sm bg-white" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
-            </div>
             <div class="col-md-7 col-12">
                 <input type="text" class="form-control form-control-sm bg-white" placeholder="Description (optional)..." title="Description (optional)" @bind="newDescription" />
             </div>
+            <div class="col-md-5 col-12">
+                <input type="url" class="form-control form-control-sm bg-white" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
+            </div>            
         </div>
     </div>
 
@@ -328,7 +328,8 @@
             Frequency = newFrequency != "" && newReoccurring ? newFrequency : null,
             StartDue = newStartDue.Value,
             EstimatedAmountDue = newEstimatedAmountDue ?? 0.0,
-            PaymentUrl = newPaymentUrl
+            PaymentUrl = newPaymentUrl,
+            AutoDraft = newAutoDraft
         };
 
         await BillTrackerRepository.AddBillAsync(task);
@@ -340,6 +341,7 @@
         newStartDue = null;
         newEstimatedAmountDue = null;
         newPaymentUrl = string.Empty;
+        newAutoDraft = false;
 
         await RefreshList();
     }

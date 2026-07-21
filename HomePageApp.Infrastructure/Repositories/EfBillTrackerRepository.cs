@@ -19,7 +19,7 @@ namespace HomePageApp.Infrastructure.Repositories
             _userAccountService = userAccountService;
         }
 
-        private DateTime? CalculateNextDue(string frequency, DateTime? lastMarked, DateTime startDue)
+        private DateTime? CalculateNextDue(string frequency, DateTime? lastMarked, DateTime startDue, DateTime? lastDue)
         {
             DateTime? nextDue = startDue;
 
@@ -29,13 +29,8 @@ namespace HomePageApp.Infrastructure.Repositories
                     if (lastMarked != null)
                     {
                         do
-                        {
                             nextDue = nextDue?.AddMonths(1);
-                        } while (nextDue <= DateTime.Now);
-                    }
-                    else
-                    {
-                        nextDue = startDue;
+                        while (nextDue < lastMarked?.AddMonths(1));
                     }
 
                     break;
@@ -44,13 +39,8 @@ namespace HomePageApp.Infrastructure.Repositories
                     if (lastMarked != null)
                     {
                         do
-                        {
                             nextDue = nextDue?.AddYears(1);
-                        } while (nextDue <= DateTime.Now);
-                    }
-                    else
-                    {
-                        nextDue = startDue;
+                        while (nextDue < lastMarked?.AddYears(1));
                     }
 
                     break;
@@ -76,7 +66,7 @@ namespace HomePageApp.Infrastructure.Repositories
         {
             using var context = _dbFactory.CreateDbContext();
 
-            var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue);
+            var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue, bill.NextDue);
             bill.NextDue = nextDue;
 
             bill.UserId = await GetCurrentUserId();
@@ -139,7 +129,7 @@ namespace HomePageApp.Infrastructure.Repositories
                 target.LastPaidOrSeen = DateTime.Now;
                 if (target.Reoccurring)
                 {
-                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaidOrSeen, target.StartDue);
+                    var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaidOrSeen, target.StartDue, target.NextDue);
                     target.NextDue = nextDue;
                 }
 
@@ -163,7 +153,7 @@ namespace HomePageApp.Infrastructure.Repositories
                 currentBill.Reoccurring = updatedBill.Reoccurring;
                 currentBill.Frequency = updatedBill.Frequency;
                 currentBill.StartDue = updatedBill.StartDue;
-                currentBill.NextDue = CalculateNextDue(updatedBill.Frequency ?? "", updatedBill.LastPaidOrSeen, updatedBill.StartDue);
+                currentBill.NextDue = CalculateNextDue(updatedBill.Frequency ?? "", updatedBill.LastPaidOrSeen, updatedBill.StartDue, updatedBill.NextDue);
                 currentBill.LastPaidOrSeen = updatedBill.LastPaidOrSeen;
                 currentBill.EstimatedAmountDue = updatedBill.EstimatedAmountDue;
                 currentBill.PaymentUrl = updatedBill.PaymentUrl;
