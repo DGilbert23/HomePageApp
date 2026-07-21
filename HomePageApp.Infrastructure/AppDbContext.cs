@@ -16,11 +16,16 @@ namespace HomePageApp.Infrastructure
 
         public DbSet<ToDoItem> ToDoItems { get; set; }
         public DbSet<Bill> Bills { get; set; }
-        public DbSet<UserProfile> UserProfiles {  get; set; }
+        public DbSet<BillShare> BillShareDefinitions { get; set; }
+        public DbSet<UserProfile> UserProfiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<BillShare>()
+                        .HasIndex(x => new { x.OwnerId, x.ShareWithId })
+                        .IsUnique();
         }
     }
 }

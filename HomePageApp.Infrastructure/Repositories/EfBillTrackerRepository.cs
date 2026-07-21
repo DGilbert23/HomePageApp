@@ -62,6 +62,15 @@ namespace HomePageApp.Infrastructure.Repositories
             return await _userAccountService.GetCurrentUserProfileId();
         }
 
+        private async Task<bool> AllowedToEdit(int billOwnerId)
+        {
+            using var context = _dbFactory.CreateDbContext();
+            var currentUserId = await GetCurrentUserId();
+
+            return billOwnerId == currentUserId
+                || await context.BillShareDefinitions.AnyAsync(s => s.OwnerId == billOwnerId && s.ShareWithId == currentUserId);
+        }
+
         public async Task AddBillAsync(Bill bill)
         {
             using var context = _dbFactory.CreateDbContext();
@@ -82,9 +91,8 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
-                var userId = await GetCurrentUserId();
-                if (target.UserId != userId)
-                    throw new InvalidOperationException("Authenticated UserId does not match record to delete");
+                if (await AllowedToEdit(target.UserId))
+                    throw new InvalidOperationException("Authenticated UserId does not match record to delete and has not been granted delete permissions.");
 
                 context.Bills.Remove(target);
                 await context.SaveChangesAsync();
@@ -100,7 +108,9 @@ namespace HomePageApp.Infrastructure.Repositories
             using var context = _dbFactory.CreateDbContext();
             var userId = await GetCurrentUserId();
 
-            return await context.Bills.Where(b => b.UserId == userId)
+            return await context.Bills.Where(b => b.UserId == userId
+                                               || context.BillShareDefinitions.Any(s => s.OwnerId == b.UserId && s.ShareWithId == userId)
+                                            )
                                       .OrderByDescending(b => b.NextDue)
                                       .ThenBy(b => b.Name)
                                       .ToListAsync<Bill>();
@@ -111,7 +121,10 @@ namespace HomePageApp.Infrastructure.Repositories
             using var context = _dbFactory.CreateDbContext();
             var userId = await GetCurrentUserId();
 
-            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut) && b.UserId == userId)
+            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut) && (b.UserId == userId
+                                                                                                || context.BillShareDefinitions.Any(s => s.OwnerId == b.UserId && s.ShareWithId == userId)
+                                                                                               )
+                                            )
                                       .OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
         }
 
@@ -122,9 +135,8 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
-                var userId = await GetCurrentUserId();
-                if (target.UserId != userId)
-                    throw new InvalidOperationException("Authenticated UserId does not match record to update");
+                if (await AllowedToEdit(target.UserId))
+                    throw new InvalidOperationException("Authenticated UserId does not match record to update and has not been granted update permissions.");
 
                 target.LastPaidOrSeen = DateTime.Now;
                 if (target.Reoccurring)
@@ -144,9 +156,8 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (currentBill != null)
             {
-                var userId = await GetCurrentUserId();
-                if (currentBill.UserId != userId)
-                    throw new InvalidOperationException("Authenticated UserId does not match record to update");
+                if (await AllowedToEdit(currentBill.UserId))
+                    throw new InvalidOperationException("Authenticated UserId does not match record to update and has not been granted update permissions.");
 
                 currentBill.Name = updatedBill.Name;
                 currentBill.Description = updatedBill.Description;
