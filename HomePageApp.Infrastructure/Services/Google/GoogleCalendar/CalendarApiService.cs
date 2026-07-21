@@ -28,11 +28,15 @@ public class CalendarApiService : ICalendarApiService
         _httpClient.BaseAddress = new Uri(configuration["GoogleCalendarApi:BaseUrl"] ?? string.Empty);
     }
 
-    public async Task<List<CalendarData>> GetUpcomingEventsAsync(string accessToken, CancellationToken cancellationToken = default)
+    public async Task<List<CalendarData>> GetUpcomingEventsAsync(CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(accessToken)) return new List<CalendarData>();
+        var accessToken = await _googleAuthService.GetValidAccessTokenAsync();
 
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        if (string.IsNullOrEmpty(accessToken))
+            return new List<CalendarData>();
+
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", accessToken);
 
         var timeMin = XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.Utc);
         var timeMax = XmlConvert.ToString(DateTime.Now.AddDays(3), XmlDateTimeSerializationMode.Utc);

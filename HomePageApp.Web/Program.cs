@@ -1,13 +1,16 @@
 using HomePageApp.Core.Interfaces;
+using HomePageApp.Core.Models;
 using HomePageApp.Infrastructure;
 using HomePageApp.Infrastructure.FileSystem;
+using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
+using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,85 +20,234 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 
-builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = false;
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        options.Lockout.AllowedForNewUsers = true;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    })
+    .AddIdentityCookies(options =>
+    {
+        options.ApplicationCookie!.Configure(cookie =>
+        {
+            cookie.LoginPath = "/login";
+        });
+    });
+
+builder.Services
+    .AddAuthentication()
+    .AddCookie("GoogleAuthCookie", options =>
+    {
+        options.Cookie.Name = "HomePageApp.Google";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+        options.SlidingExpiration = false;
+    })
+    .AddGoogle("Google", options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+        options.SaveTokens = true;
+        options.Scope.Add("https://www.googleapis.com/auth/calendar");
+        options.SignInScheme = "GoogleAuthCookie";
+        options.Events =
+            new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+            {
+                OnRedirectToAuthorizationEndpoint = context =>
+                {
+                    context.Response.Redirect(
+                        context.RedirectUri + "&access_type=offline&prompt=consent");
+
+                    return Task.CompletedTask;
+                }
+            };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser()
+    .Build();
+}
+);
+
 builder.Services.AddScoped<IToDoRepository, EfToDoRepository>();
 builder.Services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
+builder.Services.AddScoped<IUserAccountService, UserAccountService>();
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<GoogleTokenProtector>();
 
-var path = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", builder.Configuration["StorageSettings:ScratchPadPath"] ?? "");
-builder.Services.AddTransient<IScratchPadStorage>(provider => new ScratchPadStorage(path));
+builder.Services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
 
 var keysDirectory = new DirectoryInfo(@"C:\ProgramData\HomePageApp\DataProtectionKeys");
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(keysDirectory)
-    .SetApplicationName("HomePageApp"); 
+    .SetApplicationName("HomePageApp");
 
 var app = builder.Build();
 
-
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-app.UseAntiforgery();
 app.UseForwardedHeaders();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapStaticAssets();
+app.UseAntiforgery();
+app.MapStaticAssets()
+    .AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+#region Mapping endpoints for ASP.NET Identity Auth
 
-app.MapGet("account/login", async (HttpContext httpContext) =>
+app.MapPost("/account/login", async (
+    HttpContext context,
+    UserManager<ApplicationUser> userManager,
+    SignInManager<ApplicationUser> signInManager) =>
+{
+    var form = await context.Request.ReadFormAsync();
+
+    var email = form["Email"].ToString();
+    var password = form["Password"].ToString();
+
+    //Treat bad username (no user found) the same failed authentication.
+    var user = await userManager.FindByEmailAsync(email);
+    if (user == null)
+        return Results.Redirect("/login?error=invalid");
+
+    var result = await signInManager.PasswordSignInAsync(
+        user,
+        password,
+        isPersistent: true,
+        lockoutOnFailure: false);
+
+    if (result.Succeeded)
+        return Results.Redirect("/");
+    else
+        return Results.Redirect("/login?error=invalid");
+})
+    .AllowAnonymous();
+
+app.MapPost("/account/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync(IdentityConstants.ApplicationScheme);
+
+    return Results.Redirect("/login");
+})
+    .AllowAnonymous();
+
+#endregion
+
+#region Mapping endpoints for GoogleAuth for CalendarWidget
+app.MapGet("calendarwidget/account/login", async (HttpContext httpContext) =>
 {
     var properties = new AuthenticationProperties
     {
-        RedirectUri = "/",
-
-        IsPersistent = true,
-        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14),
-        AllowRefresh = true
+        RedirectUri = "/calendarwidget/account/callback"
     };
 
     await httpContext.ChallengeAsync("Google", properties);
 });
 
-// Add Logout Route Endpoint mapping
-app.MapGet("account/logout", async (HttpContext httpContext) =>
+app.MapGet("calendarwidget/account/logout", async (
+    HttpContext httpContext,
+    IUserAccountService userAccountService) =>
 {
-    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    httpContext.Response.Redirect("/");
+    await userAccountService.RemoveGoogleConnectionAsync();
+
+    await httpContext.SignOutAsync("GoogleAuthCookie");
+
+    return Results.Redirect("/");
 });
 
-app.MapGet("api/debug-tokens", async (HttpContext httpContext) =>
+app.MapGet("calendarwidget/account/callback", async (
+    HttpContext httpContext,
+    IUserAccountService userAccountService,
+    GoogleTokenProtector tokenProtector) =>
 {
-    var accessToken = await httpContext.GetTokenAsync("access_token");
-    var refreshToken = await httpContext.GetTokenAsync("refresh_token");
-    var expiresAt = await httpContext.GetTokenAsync("expires_at");
+    var result = await httpContext.AuthenticateAsync("GoogleAuthCookie");
 
-    return Results.Ok(new
+    if (!result.Succeeded)
     {
-        HasAccessToken = !string.IsNullOrEmpty(accessToken),
-        AccessTokenPreview = accessToken != null && accessToken.Length > 10
-            ? accessToken.Substring(0, 10) + "..."
-            : accessToken,
+        return Results.Redirect("/?googleError=authenticationFailed");
+    }
 
-        HasRefreshToken = !string.IsNullOrEmpty(refreshToken),
-        RefreshTokenPreview = refreshToken != null && refreshToken.Length > 10
-            ? refreshToken.Substring(0, 10) + "..."
-            : "MISSING",
+    var refreshToken = result.Properties?
+        .GetTokenValue("refresh_token");
 
-        ExpiresAtRawString = expiresAt,
-        ParsedUtcTime = DateTimeOffset.TryParse(expiresAt, out var dt) ? dt.ToString("u") : "Failed to parse",
-        CurrentUtcTime = DateTimeOffset.UtcNow.ToString("u")
-    });
+    if (string.IsNullOrEmpty(refreshToken))
+    {
+        return Results.Redirect("/?googleError=noRefreshToken");
+    }
+
+
+    var encryptedRefreshToken =
+        tokenProtector.Protect(refreshToken);
+
+
+    var googleUserId =
+        result.Principal?.FindFirst("sub")?.Value ?? "";
+
+    var googleEmail =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+
+    var googleFirstName =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.GivenName)?.Value;
+
+    var googleLastName =
+        result.Principal?.FindFirst(
+            System.Security.Claims.ClaimTypes.Surname)?.Value;
+
+
+    await userAccountService.SaveGoogleConnectionAsync(
+        new GoogleConnectionInfo
+        {
+            EncryptedRefreshToken = encryptedRefreshToken,
+            GoogleUserId = googleUserId,
+            GoogleEmail = googleEmail,
+            GoogleFirstName = googleFirstName,
+            GoogleLastName = googleLastName
+        });
+
+
+    await httpContext.SignOutAsync("GoogleAuthCookie");
+
+
+    return Results.Redirect("/");
 });
+#endregion
 
 app.Run();

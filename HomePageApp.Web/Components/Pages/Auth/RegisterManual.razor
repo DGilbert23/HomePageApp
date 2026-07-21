@@ -1,0 +1,102 @@
+﻿@page "/registermanual"
+
+@using System.ComponentModel.DataAnnotations
+@using HomePageApp.Core.Interfaces
+@inject IUserAccountService UserAccountService
+@rendermode InteractiveServer
+
+<PageTitle>Register</PageTitle>
+
+<h3>Create User</h3>
+
+<EditForm Model="_model" OnValidSubmit="RegisterAsync" FormName="RegisterUserForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">First Name</label>
+        <InputText class="form-control" @bind-Value="_model.FirstName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Last Name</label>
+        <InputText class="form-control" @bind-Value="_model.LastName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="_model.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText type="password"
+                   class="form-control"
+                   @bind-Value="_model.Password" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Create Account
+    </button>
+</EditForm>
+
+@if (!string.IsNullOrWhiteSpace(_successMessage))
+{
+    <div class="alert alert-success mt-3">
+        @_successMessage
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger mt-3">
+        @_errorMessage
+    </div>
+}
+
+@code {
+    private RegisterModel _model = new();
+
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    private async Task RegisterAsync()
+    {
+        _successMessage = null;
+        _errorMessage = null;
+
+        try
+        {
+            var profile = await UserAccountService.CreateUserAsync(
+                _model.Email,
+                _model.Password,
+                _model.FirstName,
+                _model.LastName);
+
+            _successMessage = $"User created successfully. Identity Id: {profile.IdentityUserId}";
+
+            _model = new();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+    private class RegisterModel
+    {
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [MinLength(8)]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,4 +1,7 @@
 ﻿using HomePageApp.Core.Interfaces;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,27 +10,48 @@ namespace HomePageApp.Infrastructure.FileSystem
 {
     public class ScratchPadStorage : IScratchPadStorage
     {
-        private readonly string _path;
+        private readonly IWebHostEnvironment _environment;
+        private readonly IConfiguration _configuration;
+        private readonly IUserAccountService _userAccountService;
 
-        public ScratchPadStorage(string path)
+        public ScratchPadStorage(IWebHostEnvironment environment, IConfiguration configuration, IUserAccountService userAccountService)
         {
-            _path = path;
+            _environment = environment;
+            _configuration = configuration;
+            _userAccountService = userAccountService;
         }
 
-        public Task SaveAsync(string content)
+        public async Task SaveAsync(string content)
         {
-            return File.WriteAllTextAsync(_path, content);
+            var path = await GetScratchPadPathAsync();
+
+            await File.WriteAllTextAsync(path, content);
         }
 
-        public Task<string> Load()
+        public async Task<string> Load()
         {
-            if(File.Exists(_path))
-                return File.ReadAllTextAsync(_path);
-            else
-            {
-                File.Create(_path).Close();
-                return File.ReadAllTextAsync(_path);
-            }    
+            var path = await GetScratchPadPathAsync();
+
+            if (!File.Exists(path))
+                await File.WriteAllTextAsync(path, string.Empty);
+
+            return await File.ReadAllTextAsync(path);
+        }
+
+        private async Task<string> GetScratchPadPathAsync()
+        {
+            var userId = await _userAccountService.GetCurrentUserProfileId();
+
+            var path = Path.Combine(
+                _environment.ContentRootPath,
+                "wwwroot",
+                "uploads",
+                userId.ToString(),
+                _configuration["StorageSettings:ScratchPadPath"] ?? "");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            return path;
         }
     }
 }

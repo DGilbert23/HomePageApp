@@ -13,5 +13,6 @@
         public double? EstimatedAmountDue { get; set; } = 999.999;
         public string? PaymentUrl { get; set; }
         public bool AutoDraft { get; set; }
+        public int UserId { get; set; }
     }
 }

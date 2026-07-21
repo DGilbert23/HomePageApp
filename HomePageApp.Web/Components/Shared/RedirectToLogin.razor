@@ -1,0 +1,11 @@
+﻿@inject NavigationManager Navigation
+
+<p>Redirecting to login...</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Yield();
+        Navigation.NavigateTo("/login", true);
+    }
+}

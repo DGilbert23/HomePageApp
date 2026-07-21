@@ -4,6 +4,7 @@ using HomePageApp.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomePageApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719151232_AddUserProfile")]
+    partial class AddUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,9 +63,6 @@ namespace HomePageApp.Infrastructure.Migrations
                     b.Property<DateTime>("StartDue")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Bills");
@@ -90,9 +90,6 @@ namespace HomePageApp.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -136,24 +133,6 @@ namespace HomePageApp.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("GoogleConnectedUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("GoogleEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GoogleFirstName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GoogleLastName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GoogleRefreshToken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GoogleUserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")

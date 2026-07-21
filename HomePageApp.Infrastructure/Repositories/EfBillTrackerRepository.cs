@@ -1,5 +1,6 @@
 ﻿using HomePageApp.Core.Interfaces;
 using HomePageApp.Core.Models.BillTracker;
+using HomePageApp.Infrastructure.Services.Google.GoogleCalendar;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,12 @@ namespace HomePageApp.Infrastructure.Repositories
     public class EfBillTrackerRepository : IBillTrackerRepository
     {
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
+        private readonly IUserAccountService _userAccountService;
 
-        public EfBillTrackerRepository(IDbContextFactory<AppDbContext> dbFactory)
+        public EfBillTrackerRepository(IDbContextFactory<AppDbContext> dbFactory, IUserAccountService userAccountService)
         {
             _dbFactory = dbFactory;
+            _userAccountService = userAccountService;
         }
 
         private DateTime? CalculateNextDue(string frequency, DateTime? lastMarked, DateTime startDue)
@@ -64,12 +67,19 @@ namespace HomePageApp.Infrastructure.Repositories
             return nextDue;
         }
 
+        private async Task<int> GetCurrentUserId()
+        {
+            return await _userAccountService.GetCurrentUserProfileId();
+        }
+
         public async Task AddBillAsync(Bill bill)
         {
             using var context = _dbFactory.CreateDbContext();
 
             var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue);
             bill.NextDue = nextDue;
+
+            bill.UserId = await GetCurrentUserId();
 
             context.Bills.Add(bill);
             await context.SaveChangesAsync();
@@ -82,15 +92,26 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
+                var userId = await GetCurrentUserId();
+                if (target.UserId != userId)
+                    throw new InvalidOperationException("Authenticated UserId does not match record to delete");
+
                 context.Bills.Remove(target);
                 await context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new InvalidOperationException("Delete target ID does not exist.");
             }
         }
 
         public async Task<List<Bill>> GetAllBillsAsync()
         {
             using var context = _dbFactory.CreateDbContext();
-            return await context.Bills.OrderByDescending(b => b.NextDue)
+            var userId = await GetCurrentUserId();
+
+            return await context.Bills.Where(b => b.UserId == userId)
+                                      .OrderByDescending(b => b.NextDue)
                                       .ThenBy(b => b.Name)
                                       .ToListAsync<Bill>();
         }
@@ -98,17 +119,23 @@ namespace HomePageApp.Infrastructure.Repositories
         public async Task<List<Bill>> GetUpcomingBillsAsync(int daysOut)
         {
             using var context = _dbFactory.CreateDbContext();
-            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut))
+            var userId = await GetCurrentUserId();
+
+            return await context.Bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut) && b.UserId == userId)
                                       .OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
         }
 
         public async Task MarkPaidOrSeenAsync(int id)
         {
             using var context = _dbFactory.CreateDbContext();
-            var target = await context.Bills.FindAsync(id);            
+            var target = await context.Bills.FindAsync(id);
 
             if (target != null)
             {
+                var userId = await GetCurrentUserId();
+                if (target.UserId != userId)
+                    throw new InvalidOperationException("Authenticated UserId does not match record to update");
+
                 target.LastPaidOrSeen = DateTime.Now;
                 if (target.Reoccurring)
                 {
@@ -127,6 +154,10 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (currentBill != null)
             {
+                var userId = await GetCurrentUserId();
+                if (currentBill.UserId != userId)
+                    throw new InvalidOperationException("Authenticated UserId does not match record to update");
+
                 currentBill.Name = updatedBill.Name;
                 currentBill.Description = updatedBill.Description;
                 currentBill.Reoccurring = updatedBill.Reoccurring;
