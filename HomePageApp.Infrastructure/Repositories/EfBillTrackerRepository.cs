@@ -91,7 +91,7 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
-                if (await AllowedToEdit(target.UserId))
+                if (!await AllowedToEdit(target.UserId))
                     throw new InvalidOperationException("Authenticated UserId does not match record to delete and has not been granted delete permissions.");
 
                 context.Bills.Remove(target);
@@ -135,7 +135,7 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (target != null)
             {
-                if (await AllowedToEdit(target.UserId))
+                if (!await AllowedToEdit(target.UserId))
                     throw new InvalidOperationException("Authenticated UserId does not match record to update and has not been granted update permissions.");
 
                 target.LastPaidOrSeen = DateTime.Now;
@@ -156,7 +156,7 @@ namespace HomePageApp.Infrastructure.Repositories
 
             if (currentBill != null)
             {
-                if (await AllowedToEdit(currentBill.UserId))
+                if (!await AllowedToEdit(currentBill.UserId))
                     throw new InvalidOperationException("Authenticated UserId does not match record to update and has not been granted update permissions.");
 
                 currentBill.Name = updatedBill.Name;
