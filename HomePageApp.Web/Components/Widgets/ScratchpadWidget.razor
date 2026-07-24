@@ -6,7 +6,7 @@
 <h3>Scratch Pad</h3>
 
 <div>
-    <textarea @ref="scratchpad" class="form-control form-control-lg" @onblur="SaveAsync" @oninput="ResizeTextareaAsync" @bind="content" style="overflow:hidden; resize:none"></textarea>
+    <textarea @ref="scratchpad" class="form-control form-control-lg" @onblur="SaveAsync" @oninput="OnInput" @bind="content" style="overflow:hidden; resize:none"></textarea>
 </div>
 
 @code {
@@ -33,6 +33,12 @@
     public async ValueTask DisposeAsync()
     {
         await ScratchPadStorage.SaveAsync(content);
+    }
+
+    private async Task OnInput()
+    {
+        await ScratchPadStorage.SaveAsync(content);
+        await ResizeTextareaAsync();
     }
 
     private async void SaveAsync()

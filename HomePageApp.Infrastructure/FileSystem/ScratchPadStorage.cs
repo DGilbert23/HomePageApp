@@ -13,6 +13,7 @@ namespace HomePageApp.Infrastructure.FileSystem
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
         private readonly IUserAccountService _userAccountService;
+        private string? _path;
 
         public ScratchPadStorage(IWebHostEnvironment environment, IConfiguration configuration, IUserAccountService userAccountService)
         {
@@ -40,18 +41,24 @@ namespace HomePageApp.Infrastructure.FileSystem
 
         private async Task<string> GetScratchPadPathAsync()
         {
-            var userId = await _userAccountService.GetCurrentUserProfileId();
+            if (_path == null)
+            {
+                var userId = await _userAccountService.GetCurrentUserProfileId();
 
-            var path = Path.Combine(
-                _environment.ContentRootPath,
-                "wwwroot",
-                "uploads",
-                userId.ToString(),
-                _configuration["StorageSettings:ScratchPadPath"] ?? "");
+                var path = Path.Combine(
+                    _environment.ContentRootPath,
+                    "wwwroot",
+                    "uploads",
+                    userId.ToString(),
+                    _configuration["StorageSettings:ScratchPadPath"] ?? "");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                _path = path;
 
-            return path;
+                return path;
+            }
+            else
+                return _path;            
         }
     }
 }
