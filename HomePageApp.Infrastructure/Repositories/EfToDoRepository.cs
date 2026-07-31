@@ -107,7 +107,7 @@ namespace HomePageApp.Infrastructure.Repositories
 
         private async Task<int> GetCurrentUserId()
         {
-            return await _userAccountService.GetCurrentUserProfileId();
+            return await _userAccountService.GetCurrentUserProfileIdAsync();
         }
     }
 }

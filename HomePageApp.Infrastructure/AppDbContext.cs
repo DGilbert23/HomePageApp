@@ -1,4 +1,4 @@
-﻿using HomePageApp.Core.Models;
+﻿using HomePageApp.Core.Contracts.Accounts;
 using HomePageApp.Core.Models.BillTracker;
 using HomePageApp.Core.Models.ToDoList;
 using HomePageApp.Infrastructure.Identity;

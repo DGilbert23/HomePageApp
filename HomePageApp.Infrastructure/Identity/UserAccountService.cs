@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Contracts.Accounts;
+using HomePageApp.Core.Interfaces;
 using HomePageApp.Core.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -70,10 +71,10 @@ public class UserAccountService : IUserAccountService
         return await _userManager.CheckPasswordAsync(user, password);
     }
 
-    public async Task<int> GetCurrentUserProfileId()
+    public async Task<int> GetCurrentUserProfileIdAsync()
     {
-        var identityId = await GetCurrentUserId();
-        var profile = await GetUserProfile(identityId);
+        var identityId = await GetCurrentUserIdAsync();
+        var profile = await GetUserProfileAsync(identityId);
 
         if (profile == null)
             throw new InvalidOperationException("Authenticated user has no UserProfile.");
@@ -81,7 +82,7 @@ public class UserAccountService : IUserAccountService
         return profile.Id;
     }
 
-    public async Task<Guid> GetCurrentUserId()
+    public async Task<Guid> GetCurrentUserIdAsync()
     {
         var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -105,10 +106,25 @@ public class UserAccountService : IUserAccountService
         return Guid.Parse(id);
     }
 
-    public async Task<UserProfile?> GetUserProfile(Guid identityId)
+    public async Task<UserProfile?> GetUserProfileAsync(Guid identityId)
     {
         using var context = _dbFactory.CreateDbContext();
         return await context.UserProfiles.Where(p => p.IdentityUserId == identityId).FirstOrDefaultAsync();
+    }
+
+    public async Task<AccountOperationResult> ChangeUserPasswordAsync(string currentPassword,  string newPassword)
+    {
+        var user = await _userManager.FindByIdAsync((await GetCurrentUserIdAsync()).ToString());
+
+        if (user == null)
+            throw new InvalidOperationException("No current user found. Unable to change password.");
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+        if (result.Succeeded)
+            return AccountOperationResult.Success();
+        else
+            return AccountOperationResult.Failure(result.Errors.Select(e => e.Description ?? "Unknown Error").ToArray());
     }
 
     public async Task SaveGoogleConnectionAsync(
@@ -143,7 +159,7 @@ public class UserAccountService : IUserAccountService
 
     public async Task<GoogleConnectionInfo?> GetGoogleConnectionAsync()
     {
-        var userId = await GetCurrentUserId();
+        var userId = await GetCurrentUserIdAsync();
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
@@ -169,7 +185,7 @@ public class UserAccountService : IUserAccountService
 
     public async Task RemoveGoogleConnectionAsync()
     {
-        var userId = await GetCurrentUserId();
+        var userId = await GetCurrentUserIdAsync();
 
         var user = await _userManager.FindByIdAsync(userId.ToString());
 

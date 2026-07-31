@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Models;
+﻿using HomePageApp.Core.Contracts.Accounts;
+using HomePageApp.Core.Models;
 
 namespace HomePageApp.Core.Interfaces;
 
@@ -8,11 +9,13 @@ public interface IUserAccountService
 
     Task<bool> CheckPasswordAsync(string email, string password);
 
-    Task<Guid> GetCurrentUserId();
+    Task<Guid> GetCurrentUserIdAsync();
 
-    Task<int> GetCurrentUserProfileId();
+    Task<int> GetCurrentUserProfileIdAsync();
 
-    Task<UserProfile?> GetUserProfile(Guid identityId);
+    Task<UserProfile?> GetUserProfileAsync(Guid identityId);
+
+    Task<AccountOperationResult> ChangeUserPasswordAsync(string currentPassword, string newPassword);
 
     Task SaveGoogleConnectionAsync(GoogleConnectionInfo googleConnection);
 

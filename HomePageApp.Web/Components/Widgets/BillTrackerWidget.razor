@@ -113,13 +113,6 @@
 @code {
     private readonly int _daysOutCheck = 14;
     private List<Bill> billList = new();
-    private string? newName = string.Empty;
-    private string? newDescription = string.Empty;
-    private bool newReoccurring = false;
-    private string? newFrequency;
-    private DateTime? newStartDue;
-    private double? newEstimatedAmountDue = null;
-    private string? newPaymentUrl = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {

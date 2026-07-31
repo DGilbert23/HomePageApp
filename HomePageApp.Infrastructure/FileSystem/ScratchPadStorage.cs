@@ -43,7 +43,7 @@ namespace HomePageApp.Infrastructure.FileSystem
         {
             if (_path == null)
             {
-                var userId = await _userAccountService.GetCurrentUserProfileId();
+                var userId = await _userAccountService.GetCurrentUserProfileIdAsync();
 
                 var path = Path.Combine(
                     _environment.ContentRootPath,

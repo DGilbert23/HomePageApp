@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HomePageApp.Core.Models
+namespace HomePageApp.Core.Contracts.Accounts
 {
     public class UserProfile
     {
