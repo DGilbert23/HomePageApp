@@ -1,7 +1,7 @@
 ﻿using HomePageApp.Core.Contracts.Accounts;
 using HomePageApp.Core.Models;
 
-namespace HomePageApp.Core.Interfaces;
+namespace HomePageApp.Core.Interfaces.Identity;
 
 public interface IUserAccountService
 {

@@ -1,4 +1,4 @@
-﻿namespace HomePageApp.Core.Interfaces
+﻿namespace HomePageApp.Core.Interfaces.Google
 {
     public interface IGoogleAuthService
     {

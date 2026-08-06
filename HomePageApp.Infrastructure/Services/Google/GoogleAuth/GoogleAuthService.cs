@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Interfaces.Google;
+using HomePageApp.Core.Interfaces.Identity;
 using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;

@@ -1,4 +1,7 @@
-using HomePageApp.Core.Interfaces;
+using HomePageApp.Core.Interfaces.BillTracker;
+using HomePageApp.Core.Interfaces.Identity;
+using HomePageApp.Core.Interfaces.ScratchPad;
+using HomePageApp.Core.Interfaces.ToDoList;
 using HomePageApp.Core.Models;
 using HomePageApp.Infrastructure;
 using HomePageApp.Infrastructure.FileSystem;

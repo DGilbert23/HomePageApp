@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Interfaces.Identity;
+using HomePageApp.Core.Interfaces.ScratchPad;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;

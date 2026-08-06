@@ -1,4 +1,5 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Interfaces.Identity;
+using HomePageApp.Core.Interfaces.ToDoList;
 using HomePageApp.Core.Models.ToDoList;
 using Microsoft.EntityFrameworkCore;
 

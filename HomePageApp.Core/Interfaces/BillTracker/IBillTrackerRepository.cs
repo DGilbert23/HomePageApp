@@ -1,6 +1,6 @@
 ﻿using HomePageApp.Core.Models.BillTracker;
 
-namespace HomePageApp.Core.Interfaces
+namespace HomePageApp.Core.Interfaces.BillTracker
 {
     public interface IBillTrackerRepository
     {

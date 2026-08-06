@@ -1,4 +1,7 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Interfaces.Calendar;
+using HomePageApp.Core.Interfaces.Google;
+using HomePageApp.Core.Interfaces.Identity;
+using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Infrastructure.Services.WeatherApi;

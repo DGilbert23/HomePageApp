@@ -1,4 +1,4 @@
-﻿using HomePageApp.Core.Interfaces;
+﻿using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Core.Models.WeatherApi;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;

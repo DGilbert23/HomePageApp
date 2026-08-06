@@ -1,5 +1,5 @@
 ﻿using HomePageApp.Core.Contracts.Accounts;
-using HomePageApp.Core.Interfaces;
+using HomePageApp.Core.Interfaces.Identity;
 using HomePageApp.Core.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace HomePageApp.Core.Interfaces
+namespace HomePageApp.Core.Interfaces.ToDoList
 {
     public interface IToDoRepository
     {
