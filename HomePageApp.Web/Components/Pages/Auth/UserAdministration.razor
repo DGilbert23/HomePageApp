@@ -1,5 +1,75 @@
-﻿<h3>UserAdministration</h3>
+﻿@page "/userAdministration"
+@using HomePageApp.Core.Interfaces.UserManagement
+@using HomePageApp.Core.Models.UserManagement
+@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@inject IUserRepository UserRepository
+
+<PageTitle>User Administration</PageTitle>
+
+<div class="w-75 mx-auto">
+    <div class="table-responsive rounded border border-light-subtle shadow-sm bg-white">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light text-secondary">
+                <tr>
+                    <th scope="col" class="ps-3" style="width: 10%;">Email</th>
+                    <th scope="col" style="width: 10%;">First Name</th>
+                    <th scope="col" style="width: 10%;">Last Name</th>
+                    <th scope="col" style="width: 65%;">Roles</th>
+                    <th scope="col" style="width: 5%;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (userList == null || !userList.Any())
+                {
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            <div class="py-2">No users found. Wait, how?.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var user in userList)
+                    {
+
+                        <tr>
+                            <td class="fw-semibold ps-3">
+                                <span class="text-dark">
+                                    @user.Email
+                                </span>
+                            </td>
+
+                            <td class="text-muted" title="@user.FirstName">
+                                @user.FirstName
+                            </td>
+
+                            <td class="text-muted" title="@user.LastName">
+                                @user.LastName
+                            </td>
+
+                            <td class="text-muted" title="@user.LastName">
+                                @string.Join(", ", user.Roles)
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
 
 @code {
+    private List<UserInfo> userList = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshList();
+    }
+
+    private async Task RefreshList()
+    {
+        userList = (await UserRepository.GetAllAsync()).ToList();
+    }
 }

@@ -12,7 +12,7 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
@@ -20,9 +20,19 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="billtracker">
-                        <span class="bi bi-currency-dollar-nav-menu" aria-hidden="true"></span> Bill Tracker Admin
+                        <span class="bi bi-currency-dollar" aria-hidden="true"></span> Bill Tracker Admin
                     </NavLink>
                 </div>
+
+                <AuthorizeView Roles="Admin">
+                    <Authorized Context="AdminContext">
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="userAdministration">
+                                <span class="bi bi-people" aria-hidden="true"></span> User Administration
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
 
                 <div class="nav-item px-3">
                     <form action="account/logout" method="post">

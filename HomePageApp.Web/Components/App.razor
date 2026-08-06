@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["HomePageApp.Web.styles.css"]" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
@@ -30,17 +31,17 @@
 
 <script>
     window.initHorizontalMouseWheel = (elementId) => {
-    const scrollContainer = document.getElementById(elementId);
+        const scrollContainer = document.getElementById(elementId);
 
-    if (scrollContainer) {
-    scrollContainer.addEventListener("wheel", (evt) => {
-    // Prevent the entire web page from scrolling vertically
-    evt.preventDefault();
+        if (scrollContainer) {
+            scrollContainer.addEventListener("wheel", (evt) => {
+                // Prevent the entire web page from scrolling vertically
+                evt.preventDefault();
 
-    // Redirect vertical wheel spin (deltaY) into horizontal movement
-    scrollContainer.scrollLeft -= evt.deltaY;
-    });
-    }
+                // Redirect vertical wheel spin (deltaY) into horizontal movement
+                scrollContainer.scrollLeft -= evt.deltaY;
+            });
+        }
     };
 </script>
 

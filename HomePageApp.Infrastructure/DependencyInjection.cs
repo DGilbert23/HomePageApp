@@ -4,6 +4,7 @@ using HomePageApp.Core.Interfaces.Google;
 using HomePageApp.Core.Interfaces.Identity;
 using HomePageApp.Core.Interfaces.ScratchPad;
 using HomePageApp.Core.Interfaces.ToDoList;
+using HomePageApp.Core.Interfaces.UserManagement;
 using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Infrastructure;
 using HomePageApp.Infrastructure.FileSystem;
@@ -106,6 +107,7 @@ public static class DependencyInjection
         services.AddScoped<IToDoRepository, EfToDoRepository>();
         services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
         services.AddScoped<IUserAccountService, UserAccountService>();
+        services.AddScoped<IUserRepository, EfUserRepository>();
 
         //ScratchPad
         services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
