@@ -1,4 +1,4 @@
-﻿namespace HomePageApp.Core.Models;
+﻿namespace HomePageApp.Core.Models.Google;
 
 public class GoogleConnectionInfo
 {

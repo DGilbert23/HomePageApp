@@ -1,5 +1,5 @@
 ﻿using HomePageApp.Core.Contracts.Accounts;
-using HomePageApp.Core.Models;
+using HomePageApp.Core.Models.Google;
 
 namespace HomePageApp.Core.Interfaces.Identity;
 
