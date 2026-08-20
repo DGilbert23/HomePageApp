@@ -13,34 +13,59 @@ main {
 }
 
 .top-row {
-    justify-content: flex-end;
     height: 3.5rem;
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
 }
 
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
+.top-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+    .top-row-actions form {
+        margin: 0;
     }
 
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
+.top-row form {
+    margin: 0;
+}
 
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
+.top-row .btn {
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.top-row .theme-button {
+    width: 2.5rem;
+    padding: 0;
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: var(--bs-white);
+}
+
+    .top-row .theme-button:hover {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: var(--bs-white);
+        filter: brightness(0.9);
     }
 
 @media (max-width: 640.98px) {
     .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 3.5rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 }
 
@@ -60,12 +85,6 @@ main {
         position: sticky;
         top: 0;
         z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
     }
 
     .top-row, article {
