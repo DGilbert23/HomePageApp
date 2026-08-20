@@ -9,7 +9,7 @@
         <span class="badge bg-primary rounded-pill">@toDoList.Count(t => t.CompletedDate == null) remaining</span>
     </div>
 
-    <div class="bg-light p-2 rounded mb-3 border">
+    <div class="bg-body p-2 rounded mb-3 border">
         <div class="row g-2">
             <div class="col-md-7">
                 <input type="text" class="form-control form-control-sm"
@@ -95,7 +95,7 @@
 
                         <div class="col-md-2 text-md-center">
                             <span class="text-muted d-block small uppercase tracking-wider text-xs mb-1">Created</span>
-                            <span class="fs-6 fw-medium bg-light px-2 py-1 rounded d-inline-block">
+                            <span class="fs-6 fw-medium bg-body px-2 py-1 rounded d-inline-block">
                                 @item.CreatedDate.ToString("MM/dd/yyyy")
                             </span>
                         </div>

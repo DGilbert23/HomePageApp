@@ -9,9 +9,9 @@
         <span class="badge bg-primary rounded-pill">@billList.Count() bills due in next @_daysOutCheck days</span>
     </div>
 
-    <div class="table-responsive rounded border border-light-subtle shadow-sm bg-white">
+    <div class="table-responsive rounded border border-light-subtle shadow-sm bg">
         <table class="table table-hover text-center small">
-            <thead class="table-light text-secondary">
+            <thead class="table text-secondary">
                 <tr>
                     <th scope="col" class="ps-3" style="width: 10%;">Bill Title</th>
                     <th scope="col" style="width: 20%;">Next Due</th>
@@ -51,7 +51,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-dark">@bill.Name</span>
+                                    <span class="text">@bill.Name</span>
                                 }
                             </td>
 
@@ -59,7 +59,7 @@
                                 @bill.NextDue?.ToString("d")
                             </td>
 
-                            <td class="fw-medium text-dark">
+                            <td class="fw-medium text">
                                 @if (bill.EstimatedAmountDue.HasValue)
                                 {
                                     <span>$@bill.EstimatedAmountDue.Value.ToString("N2")</span>
@@ -80,13 +80,13 @@
                             <td>
                                 @if (bill.Reoccurring)
                                 {
-                                    <span class="badge text-bg-info text-dark opacity-75 fw-semibold px-2 py-1 text-capitalize">
+                                    <span class="badge text-bg-info text opacity-75 fw-semibold px-2 py-1 text-capitalize">
                                         @bill.Frequency
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge text-bg-light border text-secondary fw-normal px-2 py-1">
+                                    <span class="badge text-bg-body border text-secondary fw-normal px-2 py-1">
                                         One-time
                                     </span>
                                 }

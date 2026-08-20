@@ -11,7 +11,7 @@
         <h5 class="m-0 text-primary fw-bold">Bill Tracker</h5>
     </div>
 
-    <div class="bg-light p-2 rounded border border-light-subtle shadow-sm mb-2">
+    <div class="bg-body p-2 rounded border border-light-subtle shadow-sm mb-2">
         <div class="row g-2 align-items-center">
             <!-- Bill Title -->
             <div class="col-md-3 col-12">
@@ -63,18 +63,18 @@
         <!-- Optional Fields sub-row -->
         <div class="row g-2 mt-1">
             <div class="col-md-7 col-12">
-                <input type="text" class="form-control form-control-sm bg-white" placeholder="Description (optional)..." title="Description (optional)" @bind="newDescription" />
+                <input type="text" class="form-control form-control-sm" placeholder="Description (optional)..." title="Description (optional)" @bind="newDescription" />
             </div>
             <div class="col-md-5 col-12">
-                <input type="url" class="form-control form-control-sm bg-white" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
+                <input type="url" class="form-control form-control-sm" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
             </div>            
         </div>
     </div>
 
     <div class="w-75 mx-auto">
-        <div class="table-responsive rounded border border-light-subtle shadow-sm bg-white">
+        <div class="table-responsive rounded border border-light-subtle shadow-sm bg">
             <table class="table table-hover align-middle mb-0 small">
-                <thead class="table-light text-secondary">
+                <thead class="table text-secondary">
                     <tr>
                         <th scope="col" class="ps-3" style="width: 10%;">Bill Title</th>
                         <th scope="col" style="width: 15%;">Description</th>
@@ -112,7 +112,7 @@
                                     }
                                     else
                                     {
-                                        <span class="text-dark">
+                                        <span class="text">
                                             @bill.Name
                                         </span>
                                     }
@@ -121,7 +121,7 @@
                                 <td class="text-muted" title="@bill.Description">
                                     @if (isEditing)
                                     {
-                                        <input type="text" class="form-control form-control-sm bg-white" placeholder="Description (optional)..." title="Description (optional)" @bind="editDescription" />
+                                        <input type="text" class="form-control form-control-sm" placeholder="Description (optional)..." title="Description (optional)" @bind="editDescription" />
                                     }
                                     else
                                     {
@@ -181,13 +181,13 @@
                                     {
                                         if (bill.Reoccurring)
                                         {
-                                            <span class="badge text-bg-info text-dark opacity-75 fw-semibold px-2 py-1 text-capitalize">
+                                            <span class="badge text-bg-info text opacity-75 fw-semibold px-2 py-1 text-capitalize">
                                                 @bill.Frequency
                                             </span>
                                         }
                                         else
                                         {
-                                            <span class="badge text-bg-light border text-secondary fw-normal px-2 py-1">
+                                            <span class="badge text-bg-body border text-secondary fw-normal px-2 py-1">
                                                 One-time
                                             </span>
                                         }
@@ -216,7 +216,7 @@
                                     }
                                 </td>
 
-                                <td class="fw-medium text-dark">
+                                <td class="fw-medium text">
                                     @if (isEditing)
                                     {
                                         <input type="number" class="form-control" placeholder="Amount (opt)" title="Estimated amount due (optional)" @bind="editEstimatedAmountDue" />
@@ -237,11 +237,14 @@
                                 <td class="text-muted" title="@bill.PaymentUrl">
                                     @if (isEditing)
                                     {
-                                        <input type="url" class="form-control form-control-sm bg-white" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="editPaymentUrl" />
+                                        <input type="url" class="form-control form-control-sm" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="editPaymentUrl" />
                                     }
                                     else
                                     {
-                                        @bill.PaymentUrl
+                                        <a href="@bill.PaymentUrl" target="_blank" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1">
+                                            @bill.PaymentUrl
+                                            <span class="small" style="font-size: 0.75rem;">↗</span>
+                                        </a>
                                     }
                                 </td>
 

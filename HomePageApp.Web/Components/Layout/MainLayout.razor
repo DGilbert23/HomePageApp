@@ -1,6 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@implements IAsyncDisposable
 @inject NavigationManager NavigationManager;
+@inject IJSRuntime JS
 @inherits LayoutComponentBase
+
 
 <div class="page">
 
@@ -15,6 +18,13 @@
         <div class="top-row px-4">
             <AuthorizeView>
                 <Authorized>
+                    <button class="btn btn-outline-secondary"
+                            @onclick="ToggleTheme"
+                            title="Toggle light/dark theme"
+                            aria-label="Toggle light/dark theme">
+                        <i class="bi @(IsDarkMode ? "bi-sun" : "bi-moon")"></i>
+                    </button>
+
                     <a class="btn btn-outline-primary btn-lg me-2" href="/changepassword">
                         Change Password
                     </a>
@@ -46,6 +56,49 @@
         "login",
         "register"
     ];
+    private IJSObjectReference? _module;
+    private bool IsDarkMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/Layout/MainLayout.razor.js");
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        Console.WriteLine("ToggleTheme called");
+
+        if (_module is not null)
+        {
+            Console.WriteLine("Calling JavaScript...");
+            await _module.InvokeVoidAsync("toggleTheme");
+
+            IsDarkMode = !IsDarkMode;
+        }
+        else
+        {
+            Console.WriteLine("JS module is NULL!");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
 
     private bool HideMenu
     {
