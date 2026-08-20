@@ -72,6 +72,8 @@
             _module = await JS.InvokeAsync<IJSObjectReference>(
                 "import",
                 "./Components/Layout/MainLayout.razor.js");
+
+            await _module.InvokeVoidAsync("initializeTheme");
         }
     }
 
