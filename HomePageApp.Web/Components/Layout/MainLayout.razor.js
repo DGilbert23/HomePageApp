@@ -23,30 +23,3 @@ export function toggleTheme() {
         newTheme === "dark"
     );
 }
-
-export function initializeTheme() {
-    const cookies = document.cookie.split(";");
-
-    for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split("=");
-
-        if (name === "IsDarkMode") {
-            const isDarkMode = value === "true";
-
-            document.documentElement.setAttribute(
-                "data-bs-theme",
-                isDarkMode ? "dark" : "light"
-            );
-
-            console.log(
-                "Theme restored from cookie:",
-                isDarkMode ? "dark" : "light"
-            );
-
-            return;
-        }
-    }
-
-    // No cookie exists, so leave the existing theme alone.
-    console.log("No IsDarkMode cookie found.");
-}

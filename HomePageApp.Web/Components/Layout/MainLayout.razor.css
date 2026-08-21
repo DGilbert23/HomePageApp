@@ -9,7 +9,7 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient( 180deg, #26364a 0%, #17202c 70% );
+    background-image: linear-gradient( 180deg, #26364a 0%, #1a2430 70% );
 }
 
 .top-row {
@@ -113,3 +113,12 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
+[data-bs-theme=light] .main-container {
+
+}
+
+[data-bs-theme=dark] .main-container {
+    background-image: linear-gradient( 180deg, #26364a 0%, #17202c 70% );
+}

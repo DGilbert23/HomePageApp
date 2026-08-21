@@ -16,6 +16,25 @@
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
+
+    <script>
+        (function () {
+            const cookies = document.cookie.split(";");
+
+        for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split("=");
+
+            if (name === "IsDarkMode") {
+                document.documentElement.setAttribute(
+                    "data-bs-theme",
+                    value === "true" ? "dark" : "light"
+                    );
+
+                break;
+            }
+        }
+    })();
+    </script>
 </head>
 
 <body>

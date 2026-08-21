@@ -14,7 +14,7 @@
         </div>
     }
 
-    <main>
+    <main class="main-container">
         <div class="top-row px-4">
             <AuthorizeView>
                 <Authorized>
@@ -72,8 +72,6 @@
             _module = await JS.InvokeAsync<IJSObjectReference>(
                 "import",
                 "./Components/Layout/MainLayout.razor.js");
-
-            await _module.InvokeVoidAsync("initializeTheme");
         }
     }
 
