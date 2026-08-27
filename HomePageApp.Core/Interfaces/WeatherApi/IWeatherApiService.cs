@@ -4,5 +4,6 @@ using HomePageApp.Core.Models.WeatherApi;
 
 public interface IWeatherApiService
 {
-    Task<WeatherData> GetWidgetWeatherAsync(string city);
+    Task<WeatherData> GetWidgetWeatherAsync(string zip);
+    Task<WeatherData> GetWidgetWeatherAsync(double latitude, double longitude);
 }

@@ -136,25 +136,42 @@
 
 @code {
     private WeatherData? weather;
-    private bool isScriptInitialized = false;
+    private IJSObjectReference? _module;
+    private BrowserPosition? currentPosition;
 
     protected override async Task OnInitializedAsync()
     {
-        await GetData();
+        
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (weather != null && !isScriptInitialized)
+        if (firstRender)
         {
-            isScriptInitialized = true;
-            await JSRuntime.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
+            _module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./Components/Widgets/WeatherWidget.razor.js");
+
+            await _module.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
+
+            currentPosition = await _module.InvokeAsync<BrowserPosition>("getCurrentPosition");
+            await GetData();
         }
     }
 
     private async Task GetData()
     {
-        weather = await WeatherService.GetWidgetWeatherAsync("35803");
+        if(currentPosition != null)
+            weather = await WeatherService.GetWidgetWeatherAsync(currentPosition.Latitude, currentPosition.Longitude);
+        else
+            weather = await WeatherService.GetWidgetWeatherAsync("35803"); //Default home ZIP.
+
         StateHasChanged();
+    }
+
+    private class BrowserPosition
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
     }
 }

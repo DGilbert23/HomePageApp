@@ -48,20 +48,4 @@
 
 </html>
 
-<script>
-    window.initHorizontalMouseWheel = (elementId) => {
-        const scrollContainer = document.getElementById(elementId);
-
-        if (scrollContainer) {
-            scrollContainer.addEventListener("wheel", (evt) => {
-                // Prevent the entire web page from scrolling vertically
-                evt.preventDefault();
-
-                // Redirect vertical wheel spin (deltaY) into horizontal movement
-                scrollContainer.scrollLeft -= evt.deltaY;
-            });
-        }
-    };
-</script>
-
 <script src="/js/login-validation.js"></script>
