@@ -28,16 +28,12 @@ export function getCurrentPosition() {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
 
-                console.log("Latitude:", latitude);
-                console.log("Longitude:", longitude);
-
                 resolve({
                     latitude: latitude,
                     longitude: longitude
                 });
             },
             (error) => {
-                console.log("Geolocation error:", error.message);
                 reject(error.message);
             }
         );

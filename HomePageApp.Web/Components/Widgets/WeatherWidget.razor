@@ -141,7 +141,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -154,8 +154,17 @@
 
             await _module.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
 
-            currentPosition = await _module.InvokeAsync<BrowserPosition>("getCurrentPosition");
-            await GetData();
+            try
+            {
+                currentPosition = await _module.InvokeAsync<BrowserPosition>("getCurrentPosition");
+                await GetData();
+            }
+            catch(Exception ex)
+            {
+                //Leave position null and proceed with default value
+                currentPosition = null;
+                await GetData();                
+            }
         }
     }
 
