@@ -26,4 +26,9 @@
     <ProjectReference Include="..\HomePageApp.Core\HomePageApp.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DemoInfrastructure\FileSystem\" />
+    <Folder Include="DemoInfrastructure\Services\" />
+  </ItemGroup>
+
 </Project>

@@ -8,5 +8,6 @@
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public string HtmlLink { get; set; }
+        public bool IsAllDay { get; set; }
     }
 }

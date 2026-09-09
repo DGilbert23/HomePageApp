@@ -80,13 +80,22 @@
                                         </div>
 
                                         <!-- Event Time Strings -->
-                                        <div class="text-primary fw-semibold small">
-                                            @(data.StartTime?.ToString("h:mm tt") ?? "--:--")
-                                        </div>
+                                        @if (!data.IsAllDay)
+                                        {
+                                            <div class="text-primary fw-semibold small">
+                                                @(data.StartTime?.ToString("h:mm tt") ?? "--:--")
+                                            </div>
 
-                                        <div class="text-muted" style="font-size: 0.75rem;">
-                                            to @(data.EndTime?.ToString("h:mm tt") ?? "--:--")
-                                        </div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                to @(data.EndTime?.ToString("h:mm tt") ?? "--:--")
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-primary fw-semibold small">
+                                                All Day
+                                            </div>
+                                        }
                                     </div>
 
                                     <div class="event-text">

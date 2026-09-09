@@ -41,7 +41,7 @@ public class CalendarApiService : ICalendarApiService
 
         var timeMin = XmlConvert.ToString(DateTime.Now, XmlDateTimeSerializationMode.Utc);
         var timeMax = XmlConvert.ToString(DateTime.Now.AddDays(3), XmlDateTimeSerializationMode.Utc);
-        var requestUrl = _httpClient.BaseAddress + "?timeMin=" + timeMin + "&timeMax=" + timeMax;
+        var requestUrl = _httpClient.BaseAddress + "?timeMin=" + timeMin + "&timeMax=" + timeMax + "&singleEvents=true&orderBy=startTime";
 
         try
         {
@@ -58,6 +58,7 @@ public class CalendarApiService : ICalendarApiService
                     Description = item.Description,
                     StartTime = Convert.ToDateTime(item.Start.DateTime == null ? item.Start.Date : item.Start.DateTime),
                     EndTime = Convert.ToDateTime(item.End.DateTime == null ? item.End.Date : item.End.DateTime),
+                    IsAllDay = item.Start.DateTime == null,
                     HtmlLink = item.HtmlLink
                 });
             }
