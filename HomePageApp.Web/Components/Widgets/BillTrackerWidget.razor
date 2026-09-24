@@ -13,7 +13,7 @@
         <table class="table table-hover text-center small">
             <thead class="table text-secondary">
                 <tr>
-                    <th scope="col" class="ps-3" style="width: 10%;">Bill Title</th>
+                    <th scope="col" class="ps-3" style="width: 10%;">Bill</th>
                     <th scope="col" style="width: 20%;">Next Due</th>
                     <th scope="col" style="width: 20%;">Est. Amount</th>
                     <th scope="col" style="width: 5%;">AutoDraft</th>
@@ -44,7 +44,7 @@
                             <td class="fw-semibold ps-3">
                                 @if (!string.IsNullOrEmpty(bill.PaymentUrl))
                                 {
-                                    <a href="@bill.PaymentUrl" target="_blank" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1">
+                                    <a href="@bill.PaymentUrl" target="_blank" class="text-decoration-none link-color d-inline-flex align-items-center gap-1 border-dark">
                                         @bill.Name
                                         <span class="small" style="font-size: 0.75rem;">↗</span>
                                     </a>
@@ -92,7 +92,7 @@
                                 }
                             </td>
 
-                            <td class="text-muted text-truncate" style="max-width: 200px;" title="@bill.Description">
+                            <td class="text-truncate" style="max-width: 200px;" title="@bill.Description">
                                 @bill.Description
                             </td>
 

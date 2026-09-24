@@ -38,7 +38,7 @@
 
 
                 <div class="vr opacity-25 my-1 d-none d-sm-block" style="height: 35px;"></div>
-                <hr class="my-1 d-block d-sm-none opacity-25"> <!-- Mobile horizontal divider alternative -->
+                <hr class="my-1 d-block d-sm-none opacity-25">
 
                 <div class="d-flex align-items-center gap-2">
                     <img src="@weather.ConditionIconUrl" alt="@weather.ConditionText" style="width: 44px; height: 44px; object-fit: contain;">
@@ -150,9 +150,7 @@
         {
             _module = await JSRuntime.InvokeAsync<IJSObjectReference>(
                 "import",
-                "./Components/Widgets/WeatherWidget.razor.js");
-
-            await _module.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
+                "./Components/Widgets/WeatherWidget.razor.js");            
 
             try
             {
@@ -165,6 +163,8 @@
                 currentPosition = null;
                 await GetData();                
             }
+
+            await _module.InvokeVoidAsync("initHorizontalMouseWheel", "hourly-scroller");
         }
     }
 
