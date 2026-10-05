@@ -3,13 +3,8 @@ using HomePageApp.Core.Interfaces.Google;
 using HomePageApp.Core.Models.CalendarApi;
 using HomePageApp.Infrastructure.Services.Google.GoogleCalendar;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace Infrastructure.Services;
@@ -48,10 +43,10 @@ public class CalendarApiService : ICalendarApiService
             var response = await _httpClient.GetFromJsonAsync<CalendarResponse>(requestUrl, cancellationToken);
             if (response?.Items == null) return new List<CalendarData>();
 
-            List<CalendarData> calendarDatas = new List<CalendarData>();
+            List<CalendarData> calendarData = new List<CalendarData>();
             foreach (Item item in response.Items)
             {
-                calendarDatas.Add(new CalendarData
+                calendarData.Add(new CalendarData
                 {
                     Id = item.Id,
                     Title = item.Summary,
@@ -62,7 +57,7 @@ public class CalendarApiService : ICalendarApiService
                     HtmlLink = item.HtmlLink
                 });
             }
-            return calendarDatas;
+            return calendarData;
         }
         catch (HttpRequestException ex)
         {

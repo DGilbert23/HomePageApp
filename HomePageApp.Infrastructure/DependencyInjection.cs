@@ -8,6 +8,7 @@ using HomePageApp.Core.Interfaces.UserManagement;
 using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Infrastructure;
 using HomePageApp.Infrastructure.DemoInfrastructure.Repositories;
+using HomePageApp.Infrastructure.DemoInfrastructure.Services;
 using HomePageApp.Infrastructure.FileSystem;
 using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
@@ -135,6 +136,7 @@ public static class DependencyInjection
         });
 
         services.AddHttpClient<ICalendarApiService, CalendarApiService>();
+        services.AddKeyedScoped<ICalendarApiService, DemoCalendarApiService>("demo");
 
         //ForwardedHeaders
         services.Configure<ForwardedHeadersOptions>(options =>

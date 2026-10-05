@@ -16,8 +16,8 @@
             <div class="card shadow-sm p-3 bg-body mb-4">
                 @if (_googleAuthenticated)
                 {
-                    <CalendarWidget FirstName="@_googleFirstName"
-                                    LastName="@_googleLastName"
+                    <CalendarDemo FirstName="Demo"
+                                    LastName="User"
                                     @rendermode="new InteractiveServerRenderMode(prerender: false)" />
                 }
                 else

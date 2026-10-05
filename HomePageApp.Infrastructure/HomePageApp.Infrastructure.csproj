@@ -28,7 +28,6 @@
 
   <ItemGroup>
     <Folder Include="DemoInfrastructure\FileSystem\" />
-    <Folder Include="DemoInfrastructure\Services\" />
   </ItemGroup>
 
 </Project>

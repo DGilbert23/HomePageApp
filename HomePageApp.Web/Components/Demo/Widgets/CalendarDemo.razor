@@ -1,5 +1,181 @@
-﻿<h3>CalendarDemo</h3>
+﻿@using HomePageApp.Core.Interfaces.Calendar
+@using HomePageApp.Core.Models.CalendarApi
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="container-fluid px-0">
+    <div class="row g-4 align-items-start">
+
+        @if (!string.IsNullOrEmpty(FirstName))
+        {
+            <div class="col-xl-3 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-3 bg-body p-3 sticky-top" style="top: 20px;">
+                    <div class="text-center">
+                        <!-- Swapped massive icon for a smaller, cleaner visual anchor -->
+                        <span class="material-symbols-outlined text-primary fs-2 mb-2">
+                            account_circle
+                        </span>
+
+                        <!-- Combined onto a single row with smaller text size to prevent forced line breaks -->
+                        <div class="text small fw-medium mb-1">Calendar Connected,</div>
+                        <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@FirstName @LastName">
+                            @FirstName @LastName
+                        </h6>
+
+                        <hr class="text-muted opacity-25 my-2" />
+
+                        <!-- Made button more compact with smaller padding (py-1) and smaller font (small) -->
+                        <button class="btn btn-outline-danger w-100 rounded-3 py-1 mt-1 d-flex align-items-center justify-content-center gap-2 btn-sm fw-semibold" @onclick="">
+                            <span class="material-symbols-outlined fs-6">link_off</span>
+                            <span>Disconnect</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="@(!string.IsNullOrEmpty(FirstName) ? "col-xl-9 col-lg-8" : "col-12")">
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+
+                <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                    <div>
+                        <h4 class="fw-bold text mb-1">Upcoming Events</h4>
+                    </div>
+                    @if (CalendarData != null)
+                    {
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold">
+                            @CalendarData.Count Events Total
+                        </span>
+                    }
+                </div>
+
+                @if (CalendarData == null)
+                {
+                    <div class="d-flex align-items-center justify-content-center py-5 my-4 text-muted gap-3">
+                        <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;" role="status"></div>
+                        <span class="fs-5">Fetching agenda details...</span>
+                    </div>
+                }
+                else if (!CalendarData.Any())
+                {
+                    <div class="text-center text-muted">
+                        <span class="material-symbols-outlined display-1 mb-3 text-body-tertiary">calendar_today</span>
+                        <h5 class="fw-semibold">Clear Schedule</h5>
+                        <p class="text-muted">You have no events for the next three days.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="calendar-events d-flex flex-column gap-3">
+                        @foreach (CalendarData data in CalendarData)
+                        {
+                            <div class="event-row p-3 border rounded-3 d-flex align-items-center bg-hover transition-all">
+
+                                <div class="event-details d-flex align-items-center gap-4">
+                                    <div class="time-container bg-body rounded-3 p-2 text-center border-start border-primary border-4">
+                                        <!-- Event Date Header -->
+                                        <div class="small fw-bold text mb-1 pb-1 border-bottom border-secondary border-opacity-10">
+                                            @(data.StartTime?.ToString("ddd, MMM dd") ?? "Multi-Day")
+                                        </div>
+
+                                        <!-- Event Time Strings -->
+                                        @if (!data.IsAllDay)
+                                        {
+                                            <div class="text-primary fw-semibold small">
+                                                @(data.StartTime?.ToString("h:mm tt") ?? "--:--")
+                                            </div>
+
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                to @(data.EndTime?.ToString("h:mm tt") ?? "--:--")
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-primary fw-semibold small">
+                                                All Day
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="event-text">
+                                        <h5 class="mb-1 fw-bold text text-truncate">
+                                            @data.Title
+                                        </h5>
+
+                                        <p class="mb-0 text-secondary text-truncate-2-lines">
+                                            @data.Description
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="event-action">
+                                    <a href="@data.HtmlLink"
+                                       target="_blank"
+                                       class="btn border-0 rounded-circle p-3 d-inline-flex align-items-center justify-content-center custom-action-btn"
+                                       title="View Full Event Details">
+                                        <span class="material-symbols-outlined text-primary fs-4 transition-transform">
+                                            arrow_forward
+                                        </span>
+                                    </a>
+                                </div>
+
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
+    [Parameter] public string? FirstName { get; set; }
+    [Parameter] public string? LastName { get; set; }
 
+    [Inject(Key = "demo")]
+    private ICalendarApiService CalendarService { get; set; } = default!;
+    private List<CalendarData>? CalendarData;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            CalendarData = await CalendarService.GetUpcomingEventsAsync();
+            CalendarData = CalendarData.OrderBy(c => c.StartTime).ToList<CalendarData>();
+        }
+        catch (Exception ex)
+        {
+            CalendarData = new List<CalendarData>();
+            _errorMessage = $"[Calendar Error] {ex.Message}";
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CalendarData != null)
+            return;
+
+        try
+        {
+            CalendarData = await CalendarService.GetUpcomingEventsAsync();
+            CalendarData = CalendarData
+                .OrderBy(c => c.StartTime)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            CalendarData = new List<CalendarData>();
+            _errorMessage = $"[Calendar Error] {ex.Message}";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(_errorMessage))
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", _errorMessage);
+            _errorMessage = null;
+        }
+    }
 }
