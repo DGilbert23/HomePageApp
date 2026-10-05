@@ -1,0 +1,28 @@
+[data-bs-theme=dark] .table-warning {
+    --bs-table-bg: #596800;
+    --bs-table-color: #e6d78a;
+    --bs-table-border-color: #665c2b;
+    --bs-table-striped-bg: #514822;
+    --bs-table-striped-color: #e6d78a;
+    --bs-table-hover-bg: #554b23;
+    --bs-table-hover-color: #e6d78a;
+}
+
+[data-bs-theme=dark] .table-danger {
+    --bs-table-bg: #7e1624;
+    --bs-table-color: #e5a1a8;
+    --bs-table-border-color: #612f35;
+    --bs-table-striped-bg: #51272d;
+    --bs-table-striped-color: #e5a1a8;
+    --bs-table-hover-bg: #572a30;
+    --bs-table-hover-color: #e5a1a8;
+}
+
+[data-bs-theme=dark] .link-color {
+    color: #6ea8fe !important;
+}
+
+[data-bs-theme=light] .link-color {
+    color: #0d6efd !important;
+}
+
