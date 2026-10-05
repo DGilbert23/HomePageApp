@@ -18,6 +18,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoBills.Add(new Bill
             {
+                Id = 0,
                 Name = "Utility",
                 Description = "Water / Gas / Electric",
                 Reoccurring = true,
@@ -31,6 +32,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoBills.Add(new Bill
             {
+                Id = 1,
                 Name = "Mortgage",
                 Reoccurring = true,
                 Frequency = "MONTHLY",
@@ -43,6 +45,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoBills.Add(new Bill
             {
+                Id = 2,
                 Name = "Amazon Prime",
                 Reoccurring = true,
                 Frequency = "YEARLY",
@@ -55,6 +58,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoBills.Add(new Bill
             {
+                Id = 3,
                 Name = "Lawn Service",
                 Description = "Bi-weekly service; paid monthly",
                 Reoccurring = true,
@@ -111,6 +115,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
         {
             var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue, bill.NextDue);
             bill.NextDue = nextDue;
+            bill.Id = (bills.MaxBy(x => x.Id)?.Id ?? 0) + 1;
 
             bills.Add(bill);
             return Task.CompletedTask;

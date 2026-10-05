@@ -96,16 +96,6 @@ public static class DependencyInjection
                         };
                 });
 
-        //Authorization
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
-        }
-                );
-
-        
         //Repositories
         services.AddKeyedScoped<IToDoRepository, EfToDoRepository>("production");
         services.AddKeyedScoped<IToDoRepository, DemoToDoRepository>("demo");
@@ -113,10 +103,10 @@ public static class DependencyInjection
         services.AddKeyedScoped<IBillTrackerRepository, DemoBillTrackerRepository>("demo");
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IUserRepository, EfUserRepository>();
-        
 
         //ScratchPad
-        services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
+        services.AddKeyedTransient<IScratchPadStorage, ScratchPadStorage>("production");
+        services.AddKeyedSingleton<IScratchPadStorage, DemoScratchPadService>("demo");
 
         //Google
         services.AddSingleton<GoogleTokenProtector>();

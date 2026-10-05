@@ -31,7 +31,9 @@ app.UseAntiforgery();
 app.MapStaticAssets()
     .AllowAnonymous();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .AllowAnonymous();
+
 
 #region Mapping endpoints for ASP.NET Identity Auth
 

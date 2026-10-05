@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 @using HomePageApp.Core.Models.BillTracker
 @using HomePageApp.Core.Interfaces.BillTracker
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize]
 @inject IBillTrackerRepository BillTrackerRepository
 
 <PageTitle>Bill Tracker Administration</PageTitle>

@@ -29,14 +29,14 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoItems.Add(new ToDoItem
             {
-                Id = 0,
+                Id = 1,
                 Title = "Mow yard",
                 CreatedDate = DateTime.Now.AddDays(-1),                
             });
 
             demoItems.Add(new ToDoItem
             {
-                Id = 0,
+                Id = 2,
                 Title = "Cancel lawn services",
                 CreatedDate = DateTime.Now.AddDays(-7),
                 DueDate = DateTime.Now.AddDays(-1),
@@ -44,7 +44,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoItems.Add(new ToDoItem
             {
-                Id = 0,
+                Id = 3,
                 Title = "Purchase decorations",
                 Description = "Look for some nice themed decorations for the garden",
                 CreatedDate = DateTime.Now.AddDays(-6),
@@ -56,6 +56,8 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
         public Task AddTaskAsync(ToDoItem item)
         {
+            item.Id = (toDoItems.MaxBy(x => x.Id)?.Id ?? 0) + 1;
+
             toDoItems.Add(item);
 
             return Task.CompletedTask;

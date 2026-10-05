@@ -108,10 +108,10 @@
 </div>
 
 @code {
-    private readonly int _daysOutCheck = 14;
-    private List<Bill> billList = new();
     [Parameter, EditorRequired]
-    public IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    public IBillTrackerRepository BillTrackerRepository { get; set; } = default!; 
+    private readonly int _daysOutCheck = 14;
+    private List<Bill> billList = new();    
 
     protected override async Task OnInitializedAsync()
     {

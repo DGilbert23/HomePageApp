@@ -1,9 +1,12 @@
 ﻿@page "/"
 @using HomePageApp.Core.Interfaces.BillTracker
-@using HomePageApp.Core.Interfaces.ToDoList
 @using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Interfaces.Identity
+@using HomePageApp.Core.Interfaces.ScratchPad
+@using HomePageApp.Core.Interfaces.ToDoList
 @using HomePageApp.Web.Components.Widgets
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize]
 @inject IUserAccountService UserAccountService
 
 <PageTitle>Home Page</PageTitle>
@@ -48,7 +51,7 @@
             </div>
 
             <div class="card shadow-sm p-3 bg-body">
-                <ScratchPadWidget @rendermode="InteractiveServer" />
+                <ScratchPadWidget @rendermode="InteractiveServer" ScratchPadStorage=ScratchPadStorage />
             </div>
         </div>
 
@@ -74,6 +77,8 @@
     private ICalendarApiService CalendarService { get; set; } = default!;
     [Inject(Key = "production")]
     private IToDoRepository ToDoRepository { get; set; } = default!;
+    [Inject(Key = "production")]
+    private IScratchPadStorage ScratchPadStorage { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

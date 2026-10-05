@@ -1,4 +1,6 @@
 ﻿@page "/registermanual"
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize(Roles = "Admin")]
 
 @using System.ComponentModel.DataAnnotations
 @using HomePageApp.Core.Interfaces.Identity

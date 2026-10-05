@@ -1,11 +1,14 @@
 ﻿@using HomePageApp.Web.Components.Shared
 @using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
 
 <Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
             <NotAuthorized>
-                <p>You hit NotAuthorized.</p>
+                @{
+                    Navigation.NavigateTo("/login", forceLoad: true);
+                }
             </NotAuthorized>
         </AuthorizeRouteView>
 
