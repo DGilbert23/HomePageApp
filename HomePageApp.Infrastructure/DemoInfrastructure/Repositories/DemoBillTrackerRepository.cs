@@ -163,7 +163,8 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             if (billToEdit != null)
             {
-                billToEdit.NextDue = CalculateNextDue(billToEdit.Frequency ?? "MONTHLY", null, billToEdit.StartDue, billToEdit.NextDue);
+                billToEdit.LastPaidOrSeen = DateTime.Now;
+                billToEdit.NextDue = CalculateNextDue(billToEdit.Frequency ?? "MONTHLY", billToEdit.LastPaidOrSeen, billToEdit.StartDue, billToEdit.NextDue);
             }
             else
                 throw new InvalidOperationException("No bill with id " + id + " found to mark paid/seen.");

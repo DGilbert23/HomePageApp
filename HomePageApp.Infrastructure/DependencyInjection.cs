@@ -7,6 +7,7 @@ using HomePageApp.Core.Interfaces.ToDoList;
 using HomePageApp.Core.Interfaces.UserManagement;
 using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Infrastructure;
+using HomePageApp.Infrastructure.DemoInfrastructure.Repositories;
 using HomePageApp.Infrastructure.FileSystem;
 using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
@@ -103,11 +104,14 @@ public static class DependencyInjection
         }
                 );
 
+        
         //Repositories
         services.AddScoped<IToDoRepository, EfToDoRepository>();
-        services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
+        services.AddKeyedScoped<IBillTrackerRepository, EfBillTrackerRepository>("production");
+        services.AddKeyedScoped<IBillTrackerRepository, DemoBillTrackerRepository>("demo");
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IUserRepository, EfUserRepository>();
+        
 
         //ScratchPad
         services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
