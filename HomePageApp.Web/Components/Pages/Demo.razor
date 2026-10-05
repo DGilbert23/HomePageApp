@@ -1,7 +1,8 @@
 ﻿@page "/Demo/"
-@using HomePageApp.Web.Components.Demo.Widgets
-@using HomePageApp.Web.Components.Widgets
+@using HomePageApp.Core.Interfaces.BillTracker
+@using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Interfaces.Identity
+@using HomePageApp.Web.Components.Widgets
 @inject IUserAccountService UserAccountService
 
 <PageTitle>Home Page</PageTitle>
@@ -16,9 +17,10 @@
             <div class="card shadow-sm p-3 bg-body mb-4">
                 @if (_googleAuthenticated)
                 {
-                    <CalendarDemo FirstName="Demo"
+                    <CalendarWidget FirstName="Demo"
                                     LastName="User"
-                                    @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+                                    @rendermode="new InteractiveServerRenderMode(prerender: false)"
+                                    CalendarService=CalendarService/>
                 }
                 else
                 {
@@ -50,7 +52,7 @@
 
         <div class="col-md-6 col-lg-8">
             <div class="card shadow-sm bg-body mb-4">
-                <BillTrackerDemo @rendermode="InteractiveServer" />
+                <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository/>
             </div>
             <div class="card shadow-sm bg-body">
                 <ToDoWidget @rendermode="InteractiveServer" />
@@ -63,6 +65,11 @@
     private bool _googleAuthenticated;
     private string? _googleFirstName;
     private string? _googleLastName;
+
+    [Inject(Key = "demo")]
+    private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    [Inject(Key = "demo")]
+    private ICalendarApiService CalendarService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

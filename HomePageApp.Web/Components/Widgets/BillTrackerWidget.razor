@@ -110,8 +110,8 @@
 @code {
     private readonly int _daysOutCheck = 14;
     private List<Bill> billList = new();
-    [Inject(Key = "production")]
-    private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    [Parameter, EditorRequired]
+    public IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

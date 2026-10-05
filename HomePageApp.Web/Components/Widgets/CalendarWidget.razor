@@ -1,6 +1,5 @@
 ﻿@using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Models.CalendarApi
-@inject ICalendarApiService CalendarService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -128,6 +127,8 @@
 @code {
     [Parameter] public string? FirstName { get; set; }
     [Parameter] public string? LastName { get; set; }
+    [Parameter, EditorRequired]
+    public ICalendarApiService CalendarService { get; set; } = default!;
 
     private List<CalendarData>? CalendarData;
     private string? _errorMessage;
