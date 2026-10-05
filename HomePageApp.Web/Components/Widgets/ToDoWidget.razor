@@ -1,6 +1,5 @@
 ﻿@using HomePageApp.Core.Interfaces.ToDoList
 @using HomePageApp.Core.Models.ToDoList
-@inject IToDoRepository ToDoRepository
 
 
 <div class="card-body p-3">
@@ -168,6 +167,8 @@
 </div>
 
 @code {
+    [Parameter, EditorRequired]
+    public IToDoRepository ToDoRepository { get; set; } = default!;
     private List<ToDoItem> toDoList = new();
 
     private string newTitle = string.Empty;

@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DemoInfrastructure\FileSystem\**" />
+    <EmbeddedResource Remove="DemoInfrastructure\FileSystem\**" />
+    <None Remove="DemoInfrastructure\FileSystem\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
@@ -24,10 +30,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HomePageApp.Core\HomePageApp.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DemoInfrastructure\FileSystem\" />
   </ItemGroup>
 
 </Project>

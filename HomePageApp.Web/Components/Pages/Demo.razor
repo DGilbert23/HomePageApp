@@ -2,6 +2,7 @@
 @using HomePageApp.Core.Interfaces.BillTracker
 @using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Interfaces.Identity
+@using HomePageApp.Core.Interfaces.ToDoList
 @using HomePageApp.Web.Components.Widgets
 @inject IUserAccountService UserAccountService
 
@@ -55,7 +56,8 @@
                 <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository/>
             </div>
             <div class="card shadow-sm bg-body">
-                <ToDoWidget @rendermode="InteractiveServer" />
+                <ToDoWidget @rendermode="InteractiveServer" ToDoRepository=ToDoRepository />
+
             </div>
         </div>
     </div>
@@ -70,6 +72,8 @@
     private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
     [Inject(Key = "demo")]
     private ICalendarApiService CalendarService { get; set; } = default!;
+    [Inject(Key = "demo")]
+    private IToDoRepository ToDoRepository { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

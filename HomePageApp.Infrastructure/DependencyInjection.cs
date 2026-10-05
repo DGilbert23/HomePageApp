@@ -107,7 +107,8 @@ public static class DependencyInjection
 
         
         //Repositories
-        services.AddScoped<IToDoRepository, EfToDoRepository>();
+        services.AddKeyedScoped<IToDoRepository, EfToDoRepository>("production");
+        services.AddKeyedScoped<IToDoRepository, DemoToDoRepository>("demo");
         services.AddKeyedScoped<IBillTrackerRepository, EfBillTrackerRepository>("production");
         services.AddKeyedScoped<IBillTrackerRepository, DemoBillTrackerRepository>("demo");
         services.AddScoped<IUserAccountService, UserAccountService>();
