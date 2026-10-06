@@ -1,0 +1,411 @@
+﻿@using HomePageApp.Core.Interfaces.BillTracker
+@using HomePageApp.Core.Models.BillTracker
+
+
+<div class="card-body p-3">
+    <div class="d-flex align-items-center mb-3 border-bottom pb-2">
+        <h3 class="m-0 text-primary fw-bold">Bill Tracker Administration </h3>
+        <h5 class="m-0 ms-2 text-primary fw-bold">- Detailed management of tracked bills</h5>
+    </div>
+
+    <div class="bg-body p-2 rounded border border-light-subtle shadow-sm mb-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-3 col-12">
+                <input type="text" class="form-control form-control-sm" placeholder="Bill title..." @bind="newName" />
+            </div>
+
+            <div class="col-md-3 col-12">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text py-0 px-2 small text-secondary fw-semibold">Due</span>
+                    <input type="date" class="form-control" title="Start due date" @bind="newStartDue" />
+                </div>
+            </div>
+
+            <div class="col-md-2 col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text py-0 px-2">$</span>
+                    <input type="number" class="form-control" placeholder="Amount (opt)" title="Estimated amount due (optional)" @bind="newEstimatedAmountDue" />
+                </div>
+            </div>
+
+            <div class="col-md-2 col-6 d-flex align-items-center gap-2">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="compactRecur" title="Recurring?" @bind="newReoccurring" />
+                    <label class="form-check-label text-secondary d-none d-lg-inline" for="compactRecur">Repeat</label>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="compactAutoDraft" title="AutoDraft?" @bind="newAutoDraft" />
+                    <label class="form-check-label text-secondary d-none d-lg-inline" for="compactAutoDraft">AutoDraft</label>
+                </div>
+                <select class="form-select form-select-sm px-1 text-truncate flex-grow-1" style="min-width: 0;" @bind="newFrequency" disabled="@(!newReoccurring)">
+                    <option value="" selected>Frequency</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="ANNUALLY">Annually</option>
+                    <option value="QUARTERLY">Quarterly</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 col-12">
+                <button class="btn btn-sm btn-primary w-100 fw-bold py-1" type="button" @onclick="AddBill">
+                    Add Bill
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-2 mt-1">
+            <div class="col-md-7 col-12">
+                <input type="text" class="form-control form-control-sm" placeholder="Description (optional)..." title="Description (optional)" @bind="newDescription" />
+            </div>
+            <div class="col-md-5 col-12">
+                <input type="url" class="form-control form-control-sm" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
+            </div>
+        </div>
+    </div>
+
+    <div class="w-100 mx-auto">
+        <div class="table-responsive rounded border border-light-subtle shadow-sm bg">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table text-secondary">
+                    <tr>
+                        <th scope="col" class="ps-3" style="width: 10%;">Bill Title</th>
+                        <th scope="col" style="width: 15%;">Description</th>
+                        <th scope="col" style="width: 10%;">Start Due</th>
+                        <th scope="col" style="width: 5%;">Reoccuring</th>
+                        <th scope="col" style="width: 5%;">AutoDraft</th>
+                        <th scope="col" style="width: 10%;">Frequency</th>
+                        <th scope="col" style="width: 10%;">Last Paid</th>
+                        <th scope="col" style="width: 10%;">Next Due</th>
+                        <th scope="col" style="width: 5%;">Amount</th>
+                        <th scope="col" style="width: 15%;">URL</th>
+                        <th scope="col" style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (billList == null || !billList.Any())
+                    {
+                        <tr>
+                            <td class="text-center text-muted py-4">
+                                <div class="py-2">No bill entries found.</div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var bill in billList)
+                        {
+                            var isEditing = editingBillId == bill.Id;
+
+                            <tr>
+                                <td class="fw-semibold ps-3">
+                                    @if (isEditing)
+                                    {
+                                        <input type="text" class="form-control form-control-sm" placeholder="Bill title..." @bind="editName" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text">
+                                            @bill.Name
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-muted" title="@bill.Description">
+                                    @if (isEditing)
+                                    {
+                                        <input type="text" class="form-control form-control-sm" placeholder="Description (optional)..." title="Description (optional)" @bind="editDescription" />
+                                    }
+                                    else
+                                    {
+                                        @bill.Description
+                                    }
+                                </td>
+
+                                <td class="text-secondary font-monospace">
+                                    @if (isEditing)
+                                    {
+                                        <input type="date" class="form-control" title="Start due date" @bind="editStartDue" />
+                                    }
+                                    else
+                                    {
+                                        @bill.StartDue.ToString("d")
+                                    }
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <div class="d-inline-flex justify-content-center align-items-center form-check form-switch mb-0 p-0">
+                                        @if (isEditing)
+                                        {
+
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Recurring?" @bind="editReoccurring" />
+                                        }
+                                        else
+                                        {
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Recurring?" checked="@bill.Reoccurring" disabled="disabled" />
+                                        }
+                                    </div>
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <div class="d-inline-flex justify-content-center align-items-center form-check form-switch mb-0 p-0">
+                                        @if (isEditing)
+                                        {
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Auto-draft?" @bind="editAutoDraft" />
+                                        }
+                                        else
+                                        {
+                                            <input class="form-check-input float-none m-0" type="checkbox" title="Auto-draft?" checked="@bill.AutoDraft" disabled="disabled" />
+                                        }
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (isEditing)
+                                    {
+                                        <select class="form-select form-select-sm px-1 text-truncate" @bind="editFrequency" disabled="@(!editReoccurring)">
+                                            <option value="" selected>Frequency</option>
+                                            <option value="MONTHLY">Monthly</option>
+                                            <option value="ANNUALLY">Annually</option>
+                                            <option value="QUARTERLY">Quarterly</option>
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        if (bill.Reoccurring)
+                                        {
+                                            <span class="badge text-bg-info text opacity-75 fw-semibold px-2 py-1 text-capitalize">
+                                                @bill.Frequency
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-body border text-secondary fw-normal px-2 py-1">
+                                                One-time
+                                            </span>
+                                        }
+                                    }
+                                </td>
+
+                                <td class="text-secondary font-monospace">
+                                    @if (isEditing)
+                                    {
+                                        <input type="date" class="form-control" title="Last Paid" @bind="editLastPaidOrSeen" />
+                                    }
+                                    else
+                                    {
+                                        @(bill.LastPaidOrSeen?.ToString("d") ?? "")
+                                    }
+                                </td>
+
+                                <td class="text-secondary font-monospace">
+                                    @if (isEditing)
+                                    {
+                                        <input type="date" class="form-control" title="Next Due" @bind="editNextDue" />
+                                    }
+                                    else
+                                    {
+                                        @(bill.NextDue?.ToString("d") ?? "")
+                                    }
+                                </td>
+
+                                <td class="fw-medium text">
+                                    @if (isEditing)
+                                    {
+                                        <input type="number" class="form-control" placeholder="Amount (opt)" title="Estimated amount due (optional)" @bind="editEstimatedAmountDue" />
+                                    }
+                                    else
+                                    {
+                                        if (bill.EstimatedAmountDue.HasValue)
+                                        {
+                                            <span>$@bill.EstimatedAmountDue.Value.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">—</span>
+                                        }
+                                    }
+                                </td>
+
+                                <td class="text-muted" title="@bill.PaymentUrl">
+                                    @if (isEditing)
+                                    {
+                                        <input type="url" class="form-control form-control-sm" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="editPaymentUrl" />
+                                    }
+                                    else
+                                    {
+                                        <a href="@bill.PaymentUrl" target="_blank" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1">
+                                            @bill.PaymentUrl
+                                            <span class="small" style="font-size: 0.75rem;">↗</span>
+                                        </a>
+                                    }
+                                </td>
+
+                                <td>
+                                    <div class="col-auto ms-auto">
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (isEditing)
+                                            {
+                                                <button class="btn btn-success btn-lg px-3 py-2 fs-6 fw-medium"
+                                                        @onclick="() => SaveBill(bill)" title="Save Changes">
+                                                    Save
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-lg px-3 py-2 fs-6"
+                                                        @onclick="CancelEdit" title="Cancel Bill">
+                                                    Cancel
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-outline-primary btn-lg px-3 py-2 fs-6 fw-medium"
+                                                        @onclick="() => StartEdit(bill)" title="Edit Bill">
+                                                    Edit
+                                                </button>
+
+                                                <button class="btn btn-outline-danger btn-lg px-3 py-2 fs-6"
+                                                        @onclick="() => DeleteBill(bill.Id)" title="Delete Bill">
+                                                    Delete
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+
+    private List<Bill> billList = new();
+    private string? newName = string.Empty;
+    private string? newDescription = string.Empty;
+    private bool newReoccurring = false;
+    private string? newFrequency;
+    private DateTime? newStartDue;
+    private double? newEstimatedAmountDue = null;
+    private string? newPaymentUrl = string.Empty;
+    private bool newAutoDraft = false;
+
+    //variables used for editing
+    private int? editingBillId = null;
+    private string? editName = string.Empty;
+    private string? editDescription = string.Empty;
+    private DateTime editStartDue;
+    private bool editReoccurring = false;
+    private DateTime? editLastPaidOrSeen;
+    private DateTime? editNextDue;
+    private string? editFrequency;
+    private double? editEstimatedAmountDue = null;
+    private string? editPaymentUrl = string.Empty;
+    private bool editAutoDraft = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshList();
+    }
+
+    private async Task RefreshList()
+    {
+        billList = await BillTrackerRepository.GetAllBillsAsync();
+    }
+
+    private async Task AddBill()
+    {
+        if (newStartDue == null)
+            return; //Can't have a null StartDue. Need to handle better.
+
+        var task = new Bill
+        {
+            Name = newName,
+            Description = newDescription,
+            Reoccurring = newReoccurring,
+            Frequency = newFrequency != "" && newReoccurring ? newFrequency : null,
+            StartDue = newStartDue.Value,
+            EstimatedAmountDue = newEstimatedAmountDue ?? 0.0,
+            PaymentUrl = newPaymentUrl,
+            AutoDraft = newAutoDraft
+        };
+
+        await BillTrackerRepository.AddBillAsync(task);
+
+        newName = string.Empty;
+        newDescription = string.Empty;
+        newReoccurring = false;
+        newFrequency = null;
+        newStartDue = null;
+        newEstimatedAmountDue = null;
+        newPaymentUrl = string.Empty;
+        newAutoDraft = false;
+
+        await RefreshList();
+    }
+
+    // Triggered when clicking the Edit (✏️) button
+    private void StartEdit(Bill bill)
+    {
+        editingBillId = bill.Id;
+        editName = bill.Name;
+        editDescription = bill.Description;
+        editStartDue = bill.StartDue;
+        editReoccurring = bill.Reoccurring;
+        editLastPaidOrSeen = bill.LastPaidOrSeen;
+        editNextDue = bill.NextDue;
+        editEstimatedAmountDue = bill.EstimatedAmountDue;
+        editFrequency = bill.Frequency;
+        editPaymentUrl = bill.PaymentUrl;
+        editAutoDraft = bill.AutoDraft;
+    }
+
+    // Triggered when clicking the Cancel (×) button during an edit
+    private void CancelEdit()
+    {
+        editingBillId = null;
+        editName = string.Empty;
+        editDescription = null;
+        editStartDue = DateTime.MinValue;
+        editReoccurring = false;
+        editLastPaidOrSeen = null;
+        editNextDue = null;
+        editEstimatedAmountDue = null;
+        editFrequency = null;
+        editPaymentUrl = null;
+        editAutoDraft = false;
+    }
+
+    // Triggered when clicking the Save (💾) button
+    private async Task SaveBill(Bill bill)
+    {
+        // Don't save if the user cleared out the title or we have the wrong ID somehow.
+        // Dont like this. We need validation
+        if (bill.Id != editingBillId)
+            return;
+        else
+        {
+            bill.Name = editName;
+            bill.Description = editDescription;
+            bill.StartDue = editStartDue;
+            bill.Reoccurring = editReoccurring;
+            bill.LastPaidOrSeen = editLastPaidOrSeen;
+            bill.NextDue = editNextDue;
+            bill.EstimatedAmountDue = editEstimatedAmountDue;
+            bill.Frequency = editFrequency;
+            bill.PaymentUrl = editPaymentUrl;
+            bill.AutoDraft = editAutoDraft;
+
+            await BillTrackerRepository.SaveBillAsync(bill);
+            CancelEdit();
+            await RefreshList();
+        }
+    }
+
+    private async Task DeleteBill(int id)
+    {
+        await BillTrackerRepository.DeleteBillAsync(id);
+        await RefreshList();
+    }
+}

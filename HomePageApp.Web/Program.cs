@@ -5,6 +5,7 @@ using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,7 +91,14 @@ app.MapGet("calendarwidget/account/logout", async (
     HttpContext httpContext,
     IUserAccountService userAccountService) =>
 {
-    await userAccountService.RemoveGoogleConnectionAsync();
+    var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    if (userId == null)
+    {
+        throw new InvalidOperationException("No authenticated user found.");
+    }
+
+    await userAccountService.RemoveGoogleConnectionAsync(Guid.Parse(userId));
 
     await httpContext.SignOutAsync("GoogleAuthCookie");
 

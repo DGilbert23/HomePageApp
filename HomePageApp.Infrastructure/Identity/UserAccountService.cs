@@ -156,7 +156,7 @@ public class UserAccountService : IUserAccountService
                     result.Errors.Select(e => e.Description)));
         }
     }
-
+    
     public async Task<GoogleConnectionInfo?> GetGoogleConnectionAsync()
     {
         var userId = await GetCurrentUserIdAsync();
@@ -183,10 +183,8 @@ public class UserAccountService : IUserAccountService
         };
     }
 
-    public async Task RemoveGoogleConnectionAsync()
+    public async Task RemoveGoogleConnectionAsync(Guid userId)
     {
-        var userId = await GetCurrentUserIdAsync();
-
         var user = await _userManager.FindByIdAsync(userId.ToString());
 
         if (user == null)

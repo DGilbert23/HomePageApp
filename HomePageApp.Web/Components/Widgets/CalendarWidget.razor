@@ -1,5 +1,6 @@
 ﻿@using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Models.CalendarApi
+@using HomePageApp.Web.Components.Shared
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
@@ -11,12 +12,19 @@
             <div class="col-xl-3 col-lg-4">
                 <div class="card border-0 shadow-sm rounded-3 bg-body p-3 sticky-top" style="top: 20px;">
                     <div class="text-center">
-                        <!-- Swapped massive icon for a smaller, cleaner visual anchor -->
-                        <span class="material-symbols-outlined text-primary fs-2 mb-2">
-                            account_circle
-                        </span>
+                        @if (IsProductionMode)
+                        {
+                            <span class="material-symbols-outlined text-primary fs-2 mb-2">
+                                account_circle
+                            </span>
+                        }
+                        else
+                        {
+                            <InfoButton>
+                                For this demo, this widget contains calendar sample data. On the production version of the application, this fully supports Google authentication, allowing you to connect your own Google account and view your own Calendar events. It even links directly to the events on your Google Calendar for easy access!
+                            </InfoButton>
+                        }                      
 
-                        <!-- Combined onto a single row with smaller text size to prevent forced line breaks -->
                         <div class="text small fw-medium mb-1">Calendar Connected,</div>
                         <h6 class="fw-bold text-secondary text-truncate px-1 mb-3" title="@FirstName @LastName">
                             @FirstName @LastName
@@ -24,7 +32,6 @@
 
                         <hr class="text-muted opacity-25 my-2" />
 
-                        <!-- Made button more compact with smaller padding (py-1) and smaller font (small) -->
                         <button class="btn btn-outline-danger w-100 rounded-3 py-1 mt-1 d-flex align-items-center justify-content-center gap-2 btn-sm fw-semibold" @onclick="HandleDisconnect">
                             <span class="material-symbols-outlined fs-6">link_off</span>
                             <span>Disconnect</span>
@@ -73,12 +80,10 @@
 
                                 <div class="event-details d-flex align-items-center gap-4">
                                     <div class="time-container bg-body rounded-3 p-2 text-center border-start border-primary border-4">
-                                        <!-- Event Date Header -->
                                         <div class="small fw-bold text mb-1 pb-1 border-bottom border-secondary border-opacity-10">
                                             @(data.StartTime?.ToString("ddd, MMM dd") ?? "Multi-Day")
                                         </div>
 
-                                        <!-- Event Time Strings -->
                                         @if (!data.IsAllDay)
                                         {
                                             <div class="text-primary fw-semibold small">
@@ -100,7 +105,7 @@
                                     <div class="event-text">
                                         <h5 class="mb-1 fw-bold text">
                                             @data.Title
-                                        </h5>                                        
+                                        </h5>
                                     </div>
                                 </div>
 
@@ -125,8 +130,12 @@
 </div>
 
 @code {
-    [Parameter] public string? FirstName { get; set; }
-    [Parameter] public string? LastName { get; set; }
+    [Parameter]
+    public string? FirstName { get; set; }
+    [Parameter]
+    public string? LastName { get; set; }
+    [Parameter]
+    public bool IsProductionMode { get; set; } = false;
     [Parameter, EditorRequired]
     public ICalendarApiService CalendarService { get; set; } = default!;
 
@@ -177,15 +186,22 @@
 
     private async Task HandleDisconnect()
     {
-        var confirmed = await JSRuntime.InvokeAsync<bool>(
-            "confirm",
-            "Disconnect Google Calendar? You will need to reconnect before calendar events are shown again.");
-
-        if (confirmed)
+        if (IsProductionMode)
         {
-            Navigation.NavigateTo(
-                "calendarwidget/account/logout",
-                forceLoad: true);
+            var confirmed = await JSRuntime.InvokeAsync<bool>(
+                "confirm",
+                "Disconnect Google Calendar? You will need to reconnect before calendar events are shown again.");
+
+            if (confirmed)
+            {
+                Navigation.NavigateTo(
+                    "calendarwidget/account/logout",
+                    forceLoad: true);
+            }
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "You're in Demo Mode so this button does nothing. On production this would allow you to disconnect your Google account. Afterwards you can choose to authenticate again or with a different Google account.");
         }
     }
 }

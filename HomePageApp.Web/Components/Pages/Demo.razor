@@ -31,10 +31,10 @@
 
         <div class="col-md-6 col-lg-8">
             <div class="card shadow-sm bg-body mb-4">
-                <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository />
+                <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository IsProductionMode="false"/>
             </div>
             <div class="card shadow-sm bg-body">
-                <ToDoWidget @rendermode="InteractiveServer" ToDoRepository=ToDoRepository />
+                <ToDoWidget @rendermode="InteractiveServer" ToDoRepository=ToDoRepository IsProductionMode="false"/>
             </div>
         </div>
     </div>

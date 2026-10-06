@@ -21,5 +21,5 @@ public interface IUserAccountService
 
     Task<GoogleConnectionInfo?> GetGoogleConnectionAsync();
 
-    Task RemoveGoogleConnectionAsync();
+    Task RemoveGoogleConnectionAsync(Guid userId);
 }
