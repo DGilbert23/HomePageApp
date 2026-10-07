@@ -126,7 +126,7 @@ namespace HomePageApp.Infrastructure.Repositories
                                                                                                 || context.BillShareDefinitions.Any(s => s.OwnerId == b.UserId && s.ShareWithId == userId)
                                                                                                )
                                             )
-                                      .OrderByDescending(b => b.NextDue).ToListAsync<Bill>();
+                                      .OrderBy(b => b.NextDue).ToListAsync<Bill>();
         }
 
         public async Task MarkPaidOrSeenAsync(int id)

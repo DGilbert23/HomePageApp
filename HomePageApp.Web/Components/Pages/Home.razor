@@ -1,6 +1,12 @@
 ﻿@page "/"
-@using HomePageApp.Web.Components.Widgets
+@using HomePageApp.Core.Interfaces.BillTracker
+@using HomePageApp.Core.Interfaces.Calendar
 @using HomePageApp.Core.Interfaces.Identity
+@using HomePageApp.Core.Interfaces.ScratchPad
+@using HomePageApp.Core.Interfaces.ToDoList
+@using HomePageApp.Web.Components.Widgets
+@using Microsoft.AspNetCore.Authorization;
+@attribute [Authorize]
 @inject IUserAccountService UserAccountService
 
 <PageTitle>Home Page</PageTitle>
@@ -17,7 +23,10 @@
                 {
                     <CalendarWidget FirstName="@_googleFirstName"
                                     LastName="@_googleLastName"
-                                    @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+                                    @rendermode="new InteractiveServerRenderMode(prerender: false)" 
+                                    CalendarService=CalendarService
+                                    IsProductionMode="true"
+                                    />
                 }
                 else
                 {
@@ -43,16 +52,16 @@
             </div>
 
             <div class="card shadow-sm p-3 bg-body">
-                <ScratchPadWidget @rendermode="InteractiveServer" />
+                <ScratchPadWidget @rendermode="InteractiveServer" ScratchPadStorage=ScratchPadStorage />
             </div>
         </div>
 
         <div class="col-md-6 col-lg-8">
             <div class="card shadow-sm bg-body mb-4">
-                <BillTrackerWidget @rendermode="InteractiveServer" />
+                <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository IsProductionMode="true"/>
             </div>
             <div class="card shadow-sm bg-body">
-                <ToDoWidget @rendermode="InteractiveServer" />
+                <ToDoWidget @rendermode="InteractiveServer" ToDoRepository=ToDoRepository IsProductionMode="true"/>
             </div>
         </div>
     </div>
@@ -62,6 +71,15 @@
     private bool _googleAuthenticated;
     private string? _googleFirstName;
     private string? _googleLastName;
+
+    [Inject(Key = "production")]
+    private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    [Inject]
+    private ICalendarApiService CalendarService { get; set; } = default!;
+    [Inject(Key = "production")]
+    private IToDoRepository ToDoRepository { get; set; } = default!;
+    [Inject(Key = "production")]
+    private IScratchPadStorage ScratchPadStorage { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

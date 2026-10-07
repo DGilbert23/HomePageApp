@@ -1,15 +1,15 @@
-﻿@page "/BillTracker"
+﻿@page "/Demo/BillTracker"
 @rendermode InteractiveServer
 @using HomePageApp.Core.Interfaces.BillTracker
 @using HomePageApp.Web.Components.Widgets
 @using Microsoft.AspNetCore.Authorization;
-@attribute [Authorize]
+@attribute [AllowAnonymous]
 
 <PageTitle>Bill Tracker Administration</PageTitle>
 
 <BillTrackerAdminWidget BillTrackerRepository=BillTrackerRepository />
 
-@code{
-    [Inject(Key = "production")]
+@code {
+    [Inject(Key = "demo")]
     private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
 }

@@ -16,16 +16,15 @@
 
     <main class="main-container">
         <div class="top-row px-4">
-            <AuthorizeView>
-                <Authorized>
-                    <div class="top-row-actions">
-                        <button class="btn theme-button"
-                                @onclick="ToggleTheme"
-                                title="Toggle light/dark theme"
-                                aria-label="Toggle light/dark theme">
-                            <i class="bi @(IsDarkMode ? "bi-sun-fill" : "bi-moon-fill")"></i>
-                        </button>
-
+            <div class="top-row-actions">
+                <button class="btn theme-button"
+                        @onclick="ToggleTheme"
+                        title="Toggle light/dark theme"
+                        aria-label="Toggle light/dark theme">
+                    <i class="bi @(IsDarkMode ? "bi-sun-fill" : "bi-moon-fill")"></i>
+                </button>
+                <AuthorizeView>
+                    <Authorized>
                         <a class="btn btn-outline-primary top-row-button"
                            href="/changepassword">
                             <i class="bi bi-key me-1"></i>
@@ -39,9 +38,9 @@
                                 Sign Out
                             </button>
                         </form>
-                    </div>
-                </Authorized>
-            </AuthorizeView>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
         </div>
 
         <article class="content px-4">
@@ -60,7 +59,8 @@
     private static readonly string[] PagesWithoutMenu =
     [
         "login",
-        "register"
+        "register",
+        "recruiter"
     ];
     private IJSObjectReference? _module;
     private bool IsDarkMode;

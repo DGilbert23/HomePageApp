@@ -1,10 +1,9 @@
 ﻿using HomePageApp.Core.Interfaces.BillTracker;
 using HomePageApp.Core.Models.BillTracker;
-using Microsoft.EntityFrameworkCore;
 
 namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 {
-    internal class DemoBillTrackerRepository : IBillTrackerRepository
+    public class DemoBillTrackerRepository : IBillTrackerRepository
     {
         private List<Bill> bills;
 
@@ -19,64 +18,56 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             demoBills.Add(new Bill
             {
-                Name = "Utility"
-                                    ,
-                Description = "Water / Gas / Electric"
-                                    ,
-                Reoccurring = true
-                                    ,
-                Frequency = "MONTHLY"
-                                    ,
-                StartDue = DateTime.Now.AddMonths(-1)
-                                    ,
-                NextDue = DateTime.Now
-                                    ,
-                EstimatedAmountDue = 400.00
-                                    ,
-                PaymentUrl = "https://google.com"
-                                    ,
+                Id = 0,
+                Name = "Utility",
+                Description = "Water / Gas / Electric",
+                Reoccurring = true,
+                Frequency = "MONTHLY",
+                StartDue = DateTime.Now.AddMonths(-1),
+                NextDue = DateTime.Now,
+                EstimatedAmountDue = 400.00,
+                PaymentUrl = "https://google.com",
                 AutoDraft = false
-
             });
 
             demoBills.Add(new Bill
             {
-                Name = "Mortgage"
-                                    ,
-                Reoccurring = true
-                                    ,
-                Frequency = "MONTHLY"
-                                    ,
-                StartDue = DateTime.Now.AddMonths(-1)
-                                    ,
-                NextDue = DateTime.Now.AddDays(5)
-                                    ,
-                EstimatedAmountDue = 2500.00
-                                    ,
-                PaymentUrl = "https://www.jpmorgan.com/global"
-                                    ,
+                Id = 1,
+                Name = "Mortgage",
+                Reoccurring = true,
+                Frequency = "MONTHLY",
+                StartDue = DateTime.Now.AddMonths(-1),
+                NextDue = DateTime.Now.AddDays(5),
+                EstimatedAmountDue = 2500.00,
+                PaymentUrl = "https://www.jpmorgan.com/global",
                 AutoDraft = true
-
             });
 
             demoBills.Add(new Bill
             {
-                Name = "Amazon Prime"
-                                    ,
-                Reoccurring = true
-                                    ,
-                Frequency = "YEARLY"
-                                    ,
-                StartDue = DateTime.Now.AddMonths(-11)
-                                    ,
-                NextDue = DateTime.Now.AddDays(1)
-                                    ,
-                EstimatedAmountDue = 150.00
-                                    ,
-                PaymentUrl = "https://amazon.com"
-                                    ,
+                Id = 2,
+                Name = "Amazon Prime",
+                Reoccurring = true,
+                Frequency = "YEARLY",
+                StartDue = DateTime.Now.AddMonths(-11),
+                NextDue = DateTime.Now.AddDays(1),
+                EstimatedAmountDue = 150.00,
+                PaymentUrl = "https://amazon.com",
                 AutoDraft = true
+            });
 
+            demoBills.Add(new Bill
+            {
+                Id = 3,
+                Name = "Lawn Service",
+                Description = "Bi-weekly service; paid monthly",
+                Reoccurring = true,
+                Frequency = "MONTHLY",
+                StartDue = DateTime.Now.AddMonths(-11),
+                NextDue = DateTime.Now.AddDays(4),
+                EstimatedAmountDue = 300.00,
+                PaymentUrl = null,
+                AutoDraft = false
             });
 
             return demoBills;
@@ -124,6 +115,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
         {
             var nextDue = CalculateNextDue(bill.Frequency ?? "MONTHLY", null, bill.StartDue, bill.NextDue);
             bill.NextDue = nextDue;
+            bill.Id = (bills.MaxBy(x => x.Id)?.Id ?? 0) + 1;
 
             bills.Add(bill);
             return Task.CompletedTask;
@@ -151,7 +143,7 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
         public Task<List<Bill>> GetUpcomingBillsAsync(int daysOut)
         {
             return Task.FromResult(bills.Where(b => b.NextDue < DateTime.Now.AddDays(daysOut))
-                                        .OrderByDescending(b => b.NextDue)
+                                        .OrderBy(b => b.NextDue)
                                         .ThenBy(b => b.Name)
                                         .ToList()
                                    );
@@ -163,7 +155,8 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
             if (billToEdit != null)
             {
-                billToEdit.NextDue = CalculateNextDue(billToEdit.Frequency ?? "MONTHLY", null, billToEdit.StartDue, billToEdit.NextDue);
+                billToEdit.LastPaidOrSeen = DateTime.Now;
+                billToEdit.NextDue = CalculateNextDue(billToEdit.Frequency ?? "MONTHLY", billToEdit.LastPaidOrSeen, billToEdit.StartDue, billToEdit.NextDue);
             }
             else
                 throw new InvalidOperationException("No bill with id " + id + " found to mark paid/seen.");
@@ -187,10 +180,10 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
                 editBill.EstimatedAmountDue = bill.EstimatedAmountDue;
                 editBill.PaymentUrl = bill.PaymentUrl;
                 editBill.AutoDraft = bill.AutoDraft;
-                editBill.UserId = bill.UserId;                
+                editBill.UserId = bill.UserId;
             }
             else
-                throw new InvalidOperationException("No bill with id " + bill.Id + " found to mark paid/seen.");
+                throw new InvalidOperationException("No bill with id " + bill.Id + " found to save.");
 
             return Task.CompletedTask;
         }

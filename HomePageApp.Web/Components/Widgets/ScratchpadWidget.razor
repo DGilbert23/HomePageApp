@@ -1,6 +1,4 @@
 ﻿@using HomePageApp.Core.Interfaces.ScratchPad
-
-@inject IScratchPadStorage ScratchPadStorage
 @inject IJSRuntime JSRuntime
 
 <h3>Scratch Pad</h3>
@@ -10,6 +8,8 @@
 </div>
 
 @code {
+    [Parameter, EditorRequired]
+    public IScratchPadStorage ScratchPadStorage { get; set; } = default!;
     private string content = string.Empty;
     private ElementReference scratchpad;
     private IJSObjectReference? module;

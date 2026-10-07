@@ -7,6 +7,8 @@ using HomePageApp.Core.Interfaces.ToDoList;
 using HomePageApp.Core.Interfaces.UserManagement;
 using HomePageApp.Core.Interfaces.WeatherApi;
 using HomePageApp.Infrastructure;
+using HomePageApp.Infrastructure.DemoInfrastructure.Repositories;
+using HomePageApp.Infrastructure.DemoInfrastructure.Services;
 using HomePageApp.Infrastructure.FileSystem;
 using HomePageApp.Infrastructure.Identity;
 using HomePageApp.Infrastructure.Repositories;
@@ -94,23 +96,17 @@ public static class DependencyInjection
                         };
                 });
 
-        //Authorization
-        services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
-        }
-                );
-
         //Repositories
-        services.AddScoped<IToDoRepository, EfToDoRepository>();
-        services.AddScoped<IBillTrackerRepository, EfBillTrackerRepository>();
+        services.AddKeyedScoped<IToDoRepository, EfToDoRepository>("production");
+        services.AddKeyedScoped<IToDoRepository, DemoToDoRepository>("demo");
+        services.AddKeyedScoped<IBillTrackerRepository, EfBillTrackerRepository>("production");
+        services.AddKeyedScoped<IBillTrackerRepository, DemoBillTrackerRepository>("demo");
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IUserRepository, EfUserRepository>();
 
         //ScratchPad
-        services.AddTransient<IScratchPadStorage, ScratchPadStorage>();
+        services.AddKeyedTransient<IScratchPadStorage, ScratchPadStorage>("production");
+        services.AddKeyedSingleton<IScratchPadStorage, DemoScratchPadService>("demo");
 
         //Google
         services.AddSingleton<GoogleTokenProtector>();
@@ -131,6 +127,7 @@ public static class DependencyInjection
         });
 
         services.AddHttpClient<ICalendarApiService, CalendarApiService>();
+        services.AddKeyedScoped<ICalendarApiService, DemoCalendarApiService>("demo");
 
         //ForwardedHeaders
         services.Configure<ForwardedHeadersOptions>(options =>

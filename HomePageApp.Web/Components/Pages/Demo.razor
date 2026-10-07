@@ -1,0 +1,52 @@
+﻿@page "/Demo/"
+@using HomePageApp.Core.Interfaces.BillTracker
+@using HomePageApp.Core.Interfaces.Calendar
+@using HomePageApp.Core.Interfaces.ScratchPad
+@using HomePageApp.Core.Interfaces.ToDoList
+@using HomePageApp.Web.Components.Widgets
+@using Microsoft.AspNetCore.Authorization;
+@attribute [AllowAnonymous]
+@rendermode InteractiveServer
+
+<PageTitle>Home Page</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm p-3 mb-4 bg-body">
+                <WeatherWidget @rendermode="InteractiveServer" />
+            </div>
+
+            <div class="card shadow-sm p-3 bg-body mb-4">
+                <CalendarWidget FirstName="Demo"
+                                LastName="User"
+                                @rendermode="new InteractiveServerRenderMode(prerender: false)"
+                                CalendarService=CalendarService />
+            </div>
+
+            <div class="card shadow-sm p-3 bg-body">
+                <ScratchPadWidget @rendermode="InteractiveServer" ScratchPadStorage=ScratchPadStorage />
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-8">
+            <div class="card shadow-sm bg-body mb-4">
+                <BillTrackerWidget @rendermode="InteractiveServer" BillTrackerRepository=BillTrackerRepository IsProductionMode="false"/>
+            </div>
+            <div class="card shadow-sm bg-body">
+                <ToDoWidget @rendermode="InteractiveServer" ToDoRepository=ToDoRepository IsProductionMode="false"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject(Key = "demo")]
+    private IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    [Inject(Key = "demo")]
+    private ICalendarApiService CalendarService { get; set; } = default!;
+    [Inject(Key = "demo")]
+    private IToDoRepository ToDoRepository { get; set; } = default!;
+    [Inject(Key = "demo")]
+    private IScratchPadStorage ScratchPadStorage { get; set; } = default!;    
+}
