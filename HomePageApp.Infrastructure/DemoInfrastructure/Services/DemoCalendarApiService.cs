@@ -18,7 +18,7 @@ public class DemoCalendarApiService : ICalendarApiService
         data.Add(new CalendarData
         {
             Id = "0",
-            Title = "Example Appointment",
+            Title = "Event Example",
             Description = "A basic event example",
             StartTime = DateTime.Now.AddHours(3),
             EndTime = DateTime.Now.AddHours(4),
