@@ -112,8 +112,8 @@ namespace HomePageApp.Infrastructure.Repositories
             return await context.Bills.Where(b => b.UserId == userId
                                                || context.BillShareDefinitions.Any(s => s.OwnerId == b.UserId && s.ShareWithId == userId)
                                             )
-                                      .OrderByDescending(b => b.NextDue)
-                                      .ThenBy(b => b.Name)
+                                      .OrderBy(b => b.Name)
+                                      .ThenByDescending(b => b.NextDue)
                                       .ToListAsync<Bill>();
         }
 
@@ -144,6 +144,10 @@ namespace HomePageApp.Infrastructure.Repositories
                 {
                     var nextDue = CalculateNextDue(target.Frequency ?? "MONTHLY", target.LastPaidOrSeen, target.StartDue, target.NextDue);
                     target.NextDue = nextDue;
+                }
+                else
+                {
+                    target.NextDue = null;
                 }
 
                 await context.SaveChangesAsync();

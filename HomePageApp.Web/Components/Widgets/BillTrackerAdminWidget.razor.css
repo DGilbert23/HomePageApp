@@ -1,0 +1,8 @@
+/* CSS for BillTrackerAdminWidget component */
+.page-heading {
+    color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .page-heading {
+    color: var(--bs-light);
+}

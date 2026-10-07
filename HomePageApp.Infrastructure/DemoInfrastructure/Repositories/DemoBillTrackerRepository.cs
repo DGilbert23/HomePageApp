@@ -134,8 +134,8 @@ namespace HomePageApp.Infrastructure.DemoInfrastructure.Repositories
 
         public Task<List<Bill>> GetAllBillsAsync()
         {
-            return Task.FromResult(bills.OrderByDescending(b => b.NextDue)
-                                        .ThenBy(b => b.Name)
+            return Task.FromResult(bills.OrderBy(b => b.Name)
+                                        .ThenByDescending(b => b.NextDue)
                                         .ToList()
                                    );
         }

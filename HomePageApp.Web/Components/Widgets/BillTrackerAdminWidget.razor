@@ -1,63 +1,143 @@
 ﻿@using HomePageApp.Core.Interfaces.BillTracker
 @using HomePageApp.Core.Models.BillTracker
+@using HomePageApp.Web.Components.Shared
 
 
 <div class="card-body p-3">
     <div class="d-flex align-items-center mb-3 border-bottom pb-2">
-        <h3 class="m-0 text-primary fw-bold">Bill Tracker Administration </h3>
-        <h5 class="m-0 ms-2 text-primary fw-bold">- Detailed management of tracked bills</h5>
+        <h3 class="m-0 fw-bold page-heading">Bill Tracker Administration </h3>
+        @if (!IsProductionMode)
+            {
+                <InfoButton>
+                    The BillTracker Administration page allows adding/editing defined bills.
+                </InfoButton>
+            }
     </div>
 
     <div class="bg-body p-2 rounded border border-light-subtle shadow-sm mb-2">
-        <div class="row g-2 align-items-center">
-            <div class="col-md-3 col-12">
-                <input type="text" class="form-control form-control-sm" placeholder="Bill title..." @bind="newName" />
-            </div>
 
-            <div class="col-md-3 col-12">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text py-0 px-2 small text-secondary fw-semibold">Due</span>
-                    <input type="date" class="form-control" title="Start due date" @bind="newStartDue" />
+        <div class="bg-body p-2 rounded border border-light-subtle shadow-sm mb-2">
+            <div class="row g-2 align-items-start">
+                <div class="col-md-2 col-12">
+                    <input type="text"
+                           class="form-control form-control-sm @(showNameError ? "is-invalid" : "")"
+                           placeholder="Bill title..."
+                           @bind="newName"
+                           @bind:after="ClearNameError" />
+
+                    <div class="small text-danger" style="height: 1.25rem;">
+                        @if (showNameError)
+                        {
+                            <span>A bill title is required.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-12">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text py-0 px-2 small text-secondary fw-semibold">
+                            Due
+                        </span>
+
+                        <input type="date"
+                               class="form-control @(showStartDueError ? "is-invalid" : "")"
+                               title="Start due date"
+                               @bind="newStartDue"
+                               @bind:after="ClearStartDueError" />
+                    </div>
+
+                    <div class="small text-danger" style="height: 1.25rem;">
+                        @if (showStartDueError)
+                        {
+                            <span>A due date is required.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-2 col-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text py-0 px-2">$</span>
+                        <input type="number"
+                               class="form-control"
+                               placeholder="Amount (opt)"
+                               title="Estimated amount due (optional)"
+                               @bind="newEstimatedAmountDue" />
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="compactRecur"
+                                   title="Recurring?"
+                                   @bind="newReoccurring" />
+
+                            <label class="form-check-label text-secondary d-none d-lg-inline"
+                                   for="compactRecur">
+                                Repeat
+                            </label>
+                        </div>
+
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   id="compactAutoDraft"
+                                   title="AutoDraft?"
+                                   @bind="newAutoDraft" />
+
+                            <label class="form-check-label text-secondary d-none d-lg-inline"
+                                   for="compactAutoDraft">
+                                AutoDraft
+                            </label>
+                        </div>
+
+                        <select class="form-select form-select-sm px-1 text-truncate flex-grow-1 @(showFrequencyError ? "is-invalid" : "")"
+                                style="min-width: 0;"
+                                @bind="newFrequency"
+                                @bind:after="ClearFrequencyError"
+                                disabled="@(!newReoccurring)">
+                            <option value="">Frequency</option>
+                            <option value="MONTHLY">Monthly</option>
+                            <option value="ANNUALLY">Annually</option>
+                            <option value="QUARTERLY">Quarterly</option>
+                        </select>
+                    </div>
+
+                    <div class="small text-danger" style="height: 1.25rem;">
+                        @if (showFrequencyError)
+                        {
+                            <span>Frequency is required.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-12">
+                    <input type="url"
+                           class="form-control form-control-sm"
+                           placeholder="Payment URL (optional)..."
+                           title="Payment URL (optional)"
+                           @bind="newPaymentUrl" />
                 </div>
             </div>
 
-            <div class="col-md-2 col-6">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text py-0 px-2">$</span>
-                    <input type="number" class="form-control" placeholder="Amount (opt)" title="Estimated amount due (optional)" @bind="newEstimatedAmountDue" />
+            <div class="row g-2 mt-1">
+                <div class="col-md-10 col-12">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           placeholder="Description (optional)..."
+                           title="Description (optional)"
+                           @bind="newDescription" />
                 </div>
-            </div>
 
-            <div class="col-md-2 col-6 d-flex align-items-center gap-2">
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" id="compactRecur" title="Recurring?" @bind="newReoccurring" />
-                    <label class="form-check-label text-secondary d-none d-lg-inline" for="compactRecur">Repeat</label>
+                <div class="col-md-2 col-12">
+                    <button class="btn btn-sm btn-primary w-100 fw-bold py-1"
+                            type="button"
+                            @onclick="AddBill">
+                        Add Bill
+                    </button>
                 </div>
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" id="compactAutoDraft" title="AutoDraft?" @bind="newAutoDraft" />
-                    <label class="form-check-label text-secondary d-none d-lg-inline" for="compactAutoDraft">AutoDraft</label>
-                </div>
-                <select class="form-select form-select-sm px-1 text-truncate flex-grow-1" style="min-width: 0;" @bind="newFrequency" disabled="@(!newReoccurring)">
-                    <option value="" selected>Frequency</option>
-                    <option value="MONTHLY">Monthly</option>
-                    <option value="ANNUALLY">Annually</option>
-                    <option value="QUARTERLY">Quarterly</option>
-                </select>
-            </div>
-
-            <div class="col-md-2 col-12">
-                <button class="btn btn-sm btn-primary w-100 fw-bold py-1" type="button" @onclick="AddBill">
-                    Add Bill
-                </button>
-            </div>
-        </div>
-
-        <div class="row g-2 mt-1">
-            <div class="col-md-7 col-12">
-                <input type="text" class="form-control form-control-sm" placeholder="Description (optional)..." title="Description (optional)" @bind="newDescription" />
-            </div>
-            <div class="col-md-5 col-12">
-                <input type="url" class="form-control form-control-sm" placeholder="Payment URL (optional)..." title="Payment url (optional)" @bind="newPaymentUrl" />
             </div>
         </div>
     </div>
@@ -99,7 +179,7 @@
                                 <td class="fw-semibold ps-3">
                                     @if (isEditing)
                                     {
-                                        <input type="text" class="form-control form-control-sm" placeholder="Bill title..." @bind="editName" />
+                                        <input type="text" class="form-control form-control-sm @(showEditNameError ? "is-invalid" : "")" placeholder="Bill title..." @bind="editName" />
                                     }
                                     else
                                     {
@@ -123,7 +203,7 @@
                                 <td class="text-secondary font-monospace">
                                     @if (isEditing)
                                     {
-                                        <input type="date" class="form-control" title="Start due date" @bind="editStartDue" />
+                                        <input type="date" class="form-control @(showEditStartDueError ? "is-invalid" : "")" title="Start due date" @bind="editStartDue" />
                                     }
                                     else
                                     {
@@ -161,7 +241,7 @@
                                 <td>
                                     @if (isEditing)
                                     {
-                                        <select class="form-select form-select-sm px-1 text-truncate" @bind="editFrequency" disabled="@(!editReoccurring)">
+                                        <select class="form-select form-select-sm px-1 text-truncate @(showEditFrequencyError ? "is-invalid" : "")" @bind="editFrequency" disabled="@(!editReoccurring)">
                                             <option value="" selected>Frequency</option>
                                             <option value="MONTHLY">Monthly</option>
                                             <option value="ANNUALLY">Annually</option>
@@ -234,7 +314,10 @@
                                     {
                                         <a href="@bill.PaymentUrl" target="_blank" class="text-decoration-none text-primary d-inline-flex align-items-center gap-1">
                                             @bill.PaymentUrl
-                                            <span class="small" style="font-size: 0.75rem;">↗</span>
+                                            @if (!string.IsNullOrWhiteSpace(bill.PaymentUrl))
+                                            {
+                                                <span class="small" style="font-size: 0.75rem;">↗</span>                        
+                                            }
                                         </a>
                                     }
                                 </td>
@@ -280,6 +363,8 @@
 @code {
     [Parameter, EditorRequired]
     public IBillTrackerRepository BillTrackerRepository { get; set; } = default!;
+    [Parameter]
+    public bool IsProductionMode { get; set; } = false;
 
     private List<Bill> billList = new();
     private string? newName = string.Empty;
@@ -295,7 +380,7 @@
     private int? editingBillId = null;
     private string? editName = string.Empty;
     private string? editDescription = string.Empty;
-    private DateTime editStartDue;
+    private DateTime? editStartDue;
     private bool editReoccurring = false;
     private DateTime? editLastPaidOrSeen;
     private DateTime? editNextDue;
@@ -303,6 +388,14 @@
     private double? editEstimatedAmountDue = null;
     private string? editPaymentUrl = string.Empty;
     private bool editAutoDraft = false;
+    private bool showNameError;
+    private bool showStartDueError;
+    private bool showFrequencyError;
+    private bool showEditNameError;
+    private bool showEditStartDueError;
+    private bool showEditFrequencyError;
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -316,8 +409,14 @@
 
     private async Task AddBill()
     {
-        if (newStartDue == null)
-            return; //Can't have a null StartDue. Need to handle better.
+        showNameError = string.IsNullOrWhiteSpace(newName);
+        showStartDueError = newStartDue == null;
+        showFrequencyError = newReoccurring && string.IsNullOrWhiteSpace(newFrequency);
+
+        if (showNameError || showStartDueError || showFrequencyError)
+            return;
+
+        showStartDueError = false;
 
         var task = new Bill
         {
@@ -380,15 +479,17 @@
     // Triggered when clicking the Save (💾) button
     private async Task SaveBill(Bill bill)
     {
-        // Don't save if the user cleared out the title or we have the wrong ID somehow.
-        // Dont like this. We need validation
-        if (bill.Id != editingBillId)
+        showEditNameError = string.IsNullOrWhiteSpace(editName);
+        showEditStartDueError = editStartDue == null;
+        showEditFrequencyError = editReoccurring && string.IsNullOrWhiteSpace(editFrequency);
+
+        if (bill.Id != editingBillId || showEditNameError || showEditStartDueError || showEditFrequencyError)
             return;
         else
         {
             bill.Name = editName;
             bill.Description = editDescription;
-            bill.StartDue = editStartDue;
+            bill.StartDue = editStartDue ?? DateTime.Now;
             bill.Reoccurring = editReoccurring;
             bill.LastPaidOrSeen = editLastPaidOrSeen;
             bill.NextDue = editNextDue;
@@ -407,5 +508,23 @@
     {
         await BillTrackerRepository.DeleteBillAsync(id);
         await RefreshList();
+    }
+
+    private void ClearNameError()
+    {
+        if (!string.IsNullOrWhiteSpace(newName))
+            showNameError = false;
+    }
+
+    private void ClearStartDueError()
+    {
+        if (newStartDue != null)
+            showStartDueError = false;
+    }
+
+    private void ClearFrequencyError()
+    {
+        if (!string.IsNullOrWhiteSpace(newFrequency))
+            showFrequencyError = false;
     }
 }
