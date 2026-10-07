@@ -5,6 +5,7 @@ using HomePageApp.Infrastructure.Services.Google.GoogleAuth;
 using HomePageApp.Web.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.FileProviders;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,13 @@ app.MapStaticAssets()
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AllowAnonymous();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "downloads")),
+    RequestPath = "/downloads"
+});
 
 
 #region Mapping endpoints for ASP.NET Identity Auth
