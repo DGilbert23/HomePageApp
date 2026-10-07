@@ -2,7 +2,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Home Page App</a>
+        <a class="navbar-brand" href="/recruiter">Home Page App</a>
     </div>
 </div>
 
@@ -10,11 +10,6 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
         <AuthorizeView>
             <NotAuthorized>
                 <div class="nav-item px-3">
@@ -30,6 +25,12 @@
                 </div>
             </NotAuthorized>
             <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                    </NavLink>
+                </div>
+
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="billtracker">
                         <span class="bi bi-currency-dollar" aria-hidden="true"></span> Bill Tracker Admin
