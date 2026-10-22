@@ -36,6 +36,16 @@ namespace HomePageApp.Infrastructure.Repositories
 
                     break;
 
+                case "SEMIANN":
+                    if (lastMarked != null)
+                    {
+                        do
+                            nextDue = nextDue?.AddMonths(6);
+                        while (nextDue < lastMarked?.AddMonths(6));
+                    }
+
+                    break;
+
                 case "ANNUALLY":
                     if (lastMarked != null)
                     {

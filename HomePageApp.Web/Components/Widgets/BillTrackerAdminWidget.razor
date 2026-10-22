@@ -100,6 +100,7 @@
                                 disabled="@(!newReoccurring)">
                             <option value="">Frequency</option>
                             <option value="MONTHLY">Monthly</option>
+                            <option value="SEMIANN">Semi-Annually</option>
                             <option value="ANNUALLY">Annually</option>
                             <option value="QUARTERLY">Quarterly</option>
                         </select>
@@ -244,6 +245,7 @@
                                         <select class="form-select form-select-sm px-1 text-truncate @(showEditFrequencyError ? "is-invalid" : "")" @bind="editFrequency" disabled="@(!editReoccurring)">
                                             <option value="" selected>Frequency</option>
                                             <option value="MONTHLY">Monthly</option>
+                                            <option value="SEMIANN">Semi-Annually</option>
                                             <option value="ANNUALLY">Annually</option>
                                             <option value="QUARTERLY">Quarterly</option>
                                         </select>
